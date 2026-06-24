@@ -1,0 +1,876 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Documentación del pipeline de Performance Ratio · PVsyst</title>
+<style>
+  :root {
+    --bg:#fafbfc; --ink:#1d2433; --muted:#5b6577; --line:#dde2eb;
+    --accent:#0a6e3a; --accent-soft:#e8f3ec; --code:#f4f6f9;
+    --warn:#b6720b; --warn-soft:#fff5e1;
+    --err:#a83232; --err-soft:#fce8e8;
+    --part:#1b3d6e; --part-soft:#eef1f8;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Segoe UI",system-ui,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.55}
+  .wrap{max-width:1080px;margin:0 auto;padding:48px 56px}
+  header.doc{border-bottom:3px solid var(--part);padding-bottom:24px;margin-bottom:36px}
+  header.doc .eyebrow{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600}
+  header.doc h1{margin:6px 0 6px;font-size:30px;letter-spacing:-.01em;color:var(--part)}
+  header.doc .meta{color:var(--muted);font-size:13px}
+
+  /* Portada de etapa — "hoja con el título de la etapa" */
+  .cover{page-break-before:always;break-before:page;min-height:80vh;display:flex;flex-direction:column;justify-content:center;
+         border-top:1px solid var(--line);margin-top:40px}
+  .cover .stage-kicker{font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);font-weight:700}
+  .cover .stage-num{font-size:74px;font-weight:800;color:var(--part-soft);line-height:.9;margin:4px 0 6px;-webkit-text-stroke:1px var(--part)}
+  .cover .stage-title{font-size:34px;font-weight:700;color:var(--part);letter-spacing:-.01em;margin:0 0 14px;max-width:760px}
+  .cover .stage-desc{font-size:16px;color:var(--muted);max-width:680px;line-height:1.5}
+  .cover .stage-artifacts{margin-top:28px;display:flex;gap:10px;flex-wrap:wrap}
+  .cover .stage-artifacts .chip{font-family:Consolas,monospace;font-size:12px;background:white;border:1px solid var(--line);border-radius:20px;padding:5px 13px;color:var(--ink)}
+  .cover .stage-artifacts .chip b{color:var(--part)}
+  .cover .stage-flow{margin-top:18px;font-family:Consolas,monospace;font-size:12.5px;color:var(--accent)}
+
+  h2{margin:40px 0 10px;font-size:21px;border-bottom:1px solid var(--line);padding-bottom:6px;scroll-margin-top:20px;color:var(--part)}
+  h3{margin:28px 0 6px;font-size:15.5px;color:var(--accent)}
+  h4{margin:18px 0 4px;font-size:12.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+  p{margin:6px 0 10px}
+  ul,ol{margin:6px 0 12px 22px}
+  li{margin:3px 0}
+  code,pre{font-family:"Cascadia Mono",Consolas,Menlo,monospace;font-size:12.5px}
+  code{background:var(--code);padding:1px 5px;border-radius:3px}
+  pre{background:var(--code);padding:14px 16px;border-radius:6px;overflow-x:auto;border:1px solid var(--line);white-space:pre}
+  table{width:100%;border-collapse:collapse;margin:10px 0 16px;font-size:12.8px}
+  th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
+  th{background:#f1f4f8;font-weight:600}
+  .table-scroll{overflow-x:auto}
+
+  .pipeline{display:flex;gap:10px;align-items:stretch;margin:18px 0 8px;flex-wrap:wrap}
+  .pipeline .step{flex:1;min-width:200px;background:white;border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:6px;padding:12px 14px}
+  .pipeline .step.pc{border-left-color:var(--warn)}
+  .pipeline .step .h{font-weight:600;font-size:13px;margin-bottom:4px}
+  .pipeline .step .s{color:var(--muted);font-size:12px;line-height:1.4}
+  .pipeline .arrow{display:flex;align-items:center;justify-content:center;color:var(--muted);font-weight:700;font-size:22px;min-width:18px}
+
+  .crit{background:white;border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:6px;padding:14px 18px;margin:14px 0}
+  .crit .title{font-weight:600;font-size:14px;margin-bottom:6px}
+  .crit .label{display:inline-block;padding:1px 7px;border-radius:3px;background:var(--accent-soft);color:var(--accent);font-size:11px;font-weight:700;letter-spacing:.04em;margin-right:8px;vertical-align:1px}
+  .note{background:var(--warn-soft);border-left:4px solid var(--warn);border-radius:6px;padding:10px 14px;color:#3a2c0a;margin:12px 0}
+  .gap{background:var(--err-soft);border-left:4px solid var(--err);border-radius:6px;padding:10px 14px;color:#451414;margin:12px 0}
+  .gap b{color:var(--err)}
+
+  .example{background:white;border:1px solid var(--line);border-radius:8px;padding:18px 22px;margin:18px 0}
+  .example header.ex{display:flex;gap:14px;align-items:baseline;border-bottom:1px solid var(--line);padding-bottom:8px;margin-bottom:12px}
+  .example header.ex .badge{display:inline-block;background:var(--accent);color:white;font-size:11px;font-weight:700;padding:3px 10px;border-radius:3px;letter-spacing:.05em}
+  .example header.ex .badge.fail{background:var(--err)}
+  .example header.ex .when{color:var(--muted);font-size:13px;font-family:Consolas,monospace}
+  .example header.ex .title{font-weight:600;flex:1}
+  .calc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px;margin:8px 0 12px}
+  .calc-grid .kv{background:var(--code);padding:6px 10px;border-radius:4px;font-size:12.5px}
+  .calc-grid .kv .k{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+  .calc-grid .kv .v{font-family:Consolas,monospace}
+  .verdict{display:inline-block;padding:3px 10px;border-radius:3px;font-weight:700;font-size:12px;letter-spacing:.04em}
+  .verdict.ok{background:var(--accent-soft);color:var(--accent)}
+  .verdict.no{background:var(--err-soft);color:var(--err)}
+  .small{color:var(--muted);font-size:12.5px}
+
+  .toc{background:white;border:1px solid var(--line);border-radius:6px;padding:18px 24px;margin:0 0 24px}
+  .toc h3{margin:0 0 10px;color:var(--ink);font-size:13px;text-transform:uppercase;letter-spacing:.05em}
+  .toc ol{margin:0;padding-left:22px;columns:2;column-gap:40px}
+  .toc li{margin:4px 0;break-inside:avoid}
+  .toc a{color:var(--ink);text-decoration:none;border-bottom:1px dotted var(--line)}
+  .toc a:hover{border-bottom-color:var(--accent);color:var(--accent)}
+  .toc .num{display:inline-block;width:26px;color:var(--part);font-weight:700;font-family:Consolas,monospace}
+
+  .kpi-row{display:flex;gap:12px;flex-wrap:wrap;margin:14px 0}
+  .kpi{flex:1;min-width:150px;background:white;border:1px solid var(--line);border-radius:6px;padding:12px 14px}
+  .kpi .k{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+  .kpi .v{font-size:20px;font-weight:700;color:var(--part);margin-top:3px}
+
+  footer.doc{margin-top:60px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);font-size:12px}
+  @media print{
+    body{background:white;font-size:11.5px}
+    .wrap{max-width:none;padding:0 14mm}
+    h2{break-after:avoid}
+    .crit,.example,.pipeline .step,table{break-inside:avoid}
+    .toc ol{columns:1}
+    .cover{min-height:88vh}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="doc">
+  <div class="eyebrow">Análisis de Performance Ratio · IEC 61724-2 · Enerlandgroup</div>
+  <h1>Pipeline de cálculo del Performance Ratio</h1>
+  <div class="meta">
+    Del SCADA crudo al veredicto PASS/FAIL — procesamiento de datos, simulación PVsyst y cálculo del PR.<br>
+    Workspace Fabric <strong>PVSyst&nbsp;-&nbsp;PR</strong> · Lakehouse <code>pvsyst</code> · Estado del código: <strong>v3</strong> (criterios C1–C9).<br>
+    <span class="small">Documento técnico-funcional. Cada etapa abre con su portada y desarrolla el detalle a continuación.</span>
+  </div>
+</header>
+
+<!-- ====================== RESUMEN EJECUTIVO ====================== -->
+<h2 id="resumen">Resumen ejecutivo</h2>
+
+<p>El objetivo del sistema es responder a una única pregunta contractual: <strong>¿la planta ha producido al menos la energía garantizada?</strong>
+Para ello se comparan dos series de energía sobre el mismo periodo y la misma meteorología:</p>
+
+<ul>
+  <li><strong>Energía medida</strong> — la que registró el contador de la planta (SCADA), depurada y filtrada para quedarnos solo con intervalos representativos.</li>
+  <li><strong>Energía esperada</strong> — la que predice el simulador <strong>PVsyst</strong> alimentado con la <em>meteorología real medida</em> en planta.</li>
+  <li><strong>Energía garantizada</strong> — la esperada ajustada por el factor contractual (<code>EPI garantizada × degradación × disponibilidad</code>).</li>
+</ul>
+
+<p>El veredicto es simplemente <code>medida ≥ garantizada → PASS</code>. Todo el aparato del pipeline existe para que esa comparación se haga sobre datos limpios, sobre intervalos válidos y con una predicción PVsyst alimentada con la meteo correcta.</p>
+
+<div class="kpi-row">
+  <div class="kpi"><div class="k">Plantas activas</div><div class="v">PL2 · FRA</div></div>
+  <div class="kpi"><div class="k">Criterios de validez</div><div class="v">C1 – C9</div></div>
+  <div class="kpi"><div class="k">Etapas del flujo</div><div class="v">10</div></div>
+  <div class="kpi"><div class="k">EPI garantizada</div><div class="v">0,98</div></div>
+</div>
+
+<h3>El flujo de un vistazo</h3>
+<div class="pipeline">
+  <div class="step"><div class="h">1 · scada_ingest</div><div class="s">gold → <code>scada_raw</code>. Renombrado a nomenclatura estándar.</div></div>
+  <div class="arrow">→</div>
+  <div class="step"><div class="h">2 · scada_proc</div><div class="s"><code>scada_raw</code> → <code>scada_proc</code>. Limpieza + criterios C1–C9 + <code>all_valid</code>.</div></div>
+  <div class="arrow">→</div>
+  <div class="step"><div class="h">3 · meteo_export</div><div class="s"><code>scada_proc</code> → CSV → SharePoint (Microsoft Graph).</div></div>
+  <div class="arrow">→</div>
+  <div class="step pc"><div class="h">4 · PVsyst CLI (PC)</div><div class="s">El <em>notifier</em> descarga el meteo, simula y devuelve resultados.</div></div>
+</div>
+<div class="pipeline">
+  <div class="step"><div class="h">5 · csv_ingest</div><div class="s">CSV PVsyst → <code>raw_pvsyst</code> + <code>proc_pvsyst</code>.</div></div>
+  <div class="arrow">→</div>
+  <div class="step"><div class="h">6 · pr_runner</div><div class="s">Medida vs esperada vs garantizada → <code>pr_results</code> + reporte.</div></div>
+  <div class="arrow">→</div>
+  <div class="step"><div class="h">7 · calculate_pr</div><div class="s">Orquestación por <code>run_id</code> (Data Pipeline).</div></div>
+  <div class="arrow">→</div>
+  <div class="step"><div class="h">8 · traceability</div><div class="s">Workbook Excel auditable para el cliente.</div></div>
+</div>
+
+<div class="note"><strong>Dos mitades desacopladas.</strong> Las etapas que viven en Fabric (1–3, 5–8) se orquestan con el Data Pipeline. La <strong>etapa 4 (simulación PVsyst)</strong> corre en un PC del operador de forma asíncrona: Fabric deja el meteo en SharePoint y, cuando PVsyst termina y deja su salida, <code>csv_ingest</code> la recoge en la siguiente pasada. No hay una sola ejecución “de punta a punta”, sino dos mitades unidas por SharePoint.</p></div>
+
+<h3>Una aclaración importante de terminología</h3>
+<p>Pese al nombre "Performance Ratio", el cálculo <strong>no</strong> es el PR clásico normalizado por irradiancia y temperatura (<code>Yf/Yr</code>). Es un <strong>test de energía (EPI)</strong>: se comparan energías acumuladas. La irradiancia, la temperatura y el resto de sensores <em>no escalan</em> la energía — solo actúan como <strong>filtros de validez</strong> (los criterios C1–C9 deciden qué intervalos cuentan). La normalización física la aporta el propio modelo de PVsyst, que ya entrega una <code>E_Grid</code> esperada modelada con pérdidas y temperatura.</p>
+
+<!-- ====================== MODELO DE DATOS ====================== -->
+<h2 id="modelo">Modelo de datos (tablas Delta)</h2>
+<p>Todo el almacenamiento es Delta sobre OneLake. Las tablas de series temporales están particionadas por <code>plant_code</code> y son <strong>idempotentes</strong> (se cargan por <code>MERGE</code> sobre su clave, por lo que re-ejecutar no duplica).</p>
+
+<div class="table-scroll">
+<table>
+  <thead><tr><th>Tabla</th><th>Capa</th><th>La escribe</th><th>Clave de merge</th><th>Contenido</th></tr></thead>
+  <tbody>
+    <tr><td><code>scada_raw</code></td><td>Bronce/Plata</td><td>scada_ingest</td><td><code>(plant_code, Date)</code></td><td>SCADA con columnas renombradas a estándar, sin tocar valores.</td></tr>
+    <tr><td><code>scada_proc</code></td><td>Plata</td><td>scada_proc</td><td><code>(plant_code, Date)</code></td><td>SCADA limpiado + medias filtradas + albedo + C1–C9 + <code>all_valid</code>.</td></tr>
+    <tr><td><code>raw_pvsyst</code></td><td>Bronce</td><td>csv_ingest</td><td><code>(plant_code, Date, source_file)</code> · solo insert</td><td>Salida del PVsyst CLI verbatim (todas las columnas como texto).</td></tr>
+    <tr><td><code>proc_pvsyst</code></td><td>Plata</td><td>csv_ingest</td><td><code>(plant_code, Date)</code> · upsert</td><td>Simulación PVsyst normalizada: <code>GHI, DHI, T_AMB, ALB, POA, E_Grid</code>.</td></tr>
+    <tr><td><code>pr_results</code></td><td>Oro</td><td>pr_runner</td><td>append (1 fila/planta/run)</td><td>Resultado del test: energías, veredicto, contadores de criterios, <code>daily_json</code>.</td></tr>
+    <tr><td><code>ingested_files</code></td><td>Catálogo</td><td>scada_ingest, csv_ingest</td><td>append</td><td>Log de trazabilidad: qué fichero/tabla, periodo, filas, estado, error.</td></tr>
+    <tr><td><code>pending_runs</code></td><td>Catálogo</td><td>csv_ingest</td><td><code>(plant_code, label)</code></td><td>Rangos con solape SCADA∩PVsyst, para el selector de Power BI.</td></tr>
+  </tbody>
+</table>
+</div>
+<p class="small">El notebook <code>lakehouse_bootstrap</code> crea este modelo una sola vez. Detalle de cada tabla en la etapa correspondiente.</p>
+
+<!-- ====================== ÍNDICE ====================== -->
+<div class="toc">
+  <h3>Índice de etapas</h3>
+  <ol style="list-style:none;padding-left:0">
+    <li><span class="num">00</span><a href="#e0">Configuración — el centro de control (<code>plants_config.xlsx</code>)</a></li>
+    <li><span class="num">01</span><a href="#e1">Ingesta del SCADA — <code>scada_ingest</code></a></li>
+    <li><span class="num">02</span><a href="#e2">Procesado y validación — <code>scada_proc</code> (C1–C9)</a></li>
+    <li><span class="num">03</span><a href="#e3">Exportación de meteo a SharePoint — <code>meteo_export</code></a></li>
+    <li><span class="num">04</span><a href="#e4">Simulación PVsyst en el PC — <code>notifier</code> + PVsyst CLI</a></li>
+    <li><span class="num">05</span><a href="#e5">Ingesta de PVsyst — <code>csv_ingest</code></a></li>
+    <li><span class="num">06</span><a href="#e6">Cálculo del Performance Ratio — <code>pr_runner</code></a></li>
+    <li><span class="num">07</span><a href="#e7">Orquestación — <code>calculate_pr</code> + <code>PR_pipeline</code></a></li>
+    <li><span class="num">08</span><a href="#e8">Trazabilidad auditable — <code>traceability_export</code></a></li>
+    <li><span class="num">09</span><a href="#e9">Reporte HTML al cliente — <code>report_template</code></a></li>
+    <li><span class="num">10</span><a href="#e10">Bootstrap y mantenimiento — <code>lakehouse_bootstrap</code>, <code>maint_*</code></a></li>
+    <li><span class="num">A</span><a href="#apx">Apéndice — notas de versión e inconsistencias a revisar</a></li>
+  </ol>
+</div>
+
+
+<!-- ============================================================= -->
+<!-- ETAPA 0 -->
+<!-- ============================================================= -->
+<section class="cover" id="e0">
+  <div class="stage-kicker">Etapa 00 · Configuración</div>
+  <div class="stage-num">00</div>
+  <div class="stage-title">El centro de control: <code>plants_config.xlsx</code></div>
+  <div class="stage-desc">Un único libro de Excel parametriza todo el pipeline: qué plantas se procesan, cómo se renombran sus sensores, qué umbrales de limpieza y qué criterios de validez se aplican a cada una. Cambiar el comportamiento del sistema no requiere tocar código.</div>
+  <div class="stage-artifacts">
+    <span class="chip"><b>Fichero</b> Raw PVSyst1/CONFIG/plants_config.xlsx</span>
+    <span class="chip"><b>Hojas</b> 7</span>
+    <span class="chip"><b>Lo leen</b> todos los notebooks</span>
+  </div>
+</section>
+
+<h2>0 · Configuración — <code>plants_config.xlsx</code></h2>
+<p>El libro se lee desde el shortcut de SharePoint montado en el lakehouse (<code>Files/Raw PVSyst1/CONFIG/</code>). Cada notebook lo descarga a <code>/tmp</code> y lee las hojas que necesita. Contiene <strong>7 hojas</strong>:</p>
+
+<h3>0.1 · <code>00_Instrucciones</code></h3>
+<p>Leyenda en texto libre que documenta el propósito de cada hoja. No la lee ningún proceso; es la guía para quien edita la configuración.</p>
+
+<h3>0.2 · <code>01_Plants</code> — catálogo de plantas</h3>
+<div class="table-scroll">
+<table>
+  <thead><tr><th>plant_code</th><th>plant_name</th><th>pr_execution</th><th>scada_table_name</th><th>pvsyst_file</th><th>ac_capacity_kw</th><th>dc_capacity_kw</th><th>timezone</th></tr></thead>
+  <tbody>
+    <tr><td>PL2</td><td>Plaza II</td><td>TRUE</td><td>plaza2_15min</td><td>PL2</td><td>16 800</td><td>18 310</td><td>Europe/Madrid</td></tr>
+    <tr><td>FRA</td><td>Fraga</td><td>TRUE</td><td>fraga_15min</td><td>FRA</td><td><em>(vacío)</em></td><td><em>(vacío)</em></td><td>Europe/Madrid</td></tr>
+  </tbody>
+</table>
+</div>
+<p>Solo se procesan las plantas con <code>pr_execution</code> ∈ {TRUE, VERDADERO, 1, SI, SÍ}. <code>scada_table_name</code> indica la tabla gold de origen; <code>pvsyst_file</code> es el prefijo del CSV de PVsyst. Fraga tiene capacidades vacías (el eje del gráfico se autoescala).</p>
+
+<h3>0.3 · <code>02_Sensors_Mapping</code> — renombrado y agregación de sensores</h3>
+<p>Una fila por sensor: <code>columna_original</code> (nomenclatura del operador) → <code>columna_destino</code> (estándar de plataforma), con su <code>parametro</code>, <code>agregacion</code> y <code>unidad</code>. La fila <code>plant_code = COMMON</code> es la base; las filas de planta concreta <strong>añaden o sobrescriben</strong>. Cualquier columna del origen no listada se ignora.</p>
+<div class="table-scroll">
+<table>
+  <thead><tr><th>columna_destino</th><th>parámetro</th><th>agregación</th><th>unidad</th><th>nota</th></tr></thead>
+  <tbody>
+    <tr><td><code>GHI_01..04</code></td><td>GHI</td><td>mean</td><td>W/m²</td><td>Piranómetros horizontales.</td></tr>
+    <tr><td><code>DHI_01..02</code></td><td>DHI</td><td>mean</td><td>W/m²</td><td>Difusa horizontal.</td></tr>
+    <tr><td><code>POA_01..04</code></td><td>POA</td><td>mean</td><td>W/m²</td><td>Plano del array.</td></tr>
+    <tr><td><code>REF_01..02</code></td><td>REF</td><td>mean</td><td>W/m²</td><td>Reflejada (para albedo).</td></tr>
+    <tr><td><code>T_AMB_01</code></td><td>T_AMB</td><td>mean</td><td>ºC</td><td>Temperatura ambiente.</td></tr>
+    <tr><td><code>E_GRID_01</code> / <code>AP_01</code></td><td>E_GRID / AP</td><td>mean</td><td>kW</td><td>Potencia activa del contador principal.</td></tr>
+    <tr><td><code>SETPOINT_01</code></td><td>SETPOINT</td><td><strong>min</strong></td><td>kW</td><td>Cualquier caída por debajo del umbral invalida el intervalo (C7).</td></tr>
+    <tr><td><code>WA_01</code></td><td>WIND_ALARM</td><td><strong>max</strong></td><td>0/1</td><td>Alarma de viento (peor caso del intervalo). En PL2 llega por el canal <code>WS_01</code>.</td></tr>
+    <tr><td><code>WS_01</code></td><td>WS</td><td>mean</td><td>km/h</td><td>Velocidad de viento (dato, no criterio).</td></tr>
+    <tr><td><code>PF_01</code></td><td>PF</td><td>mean</td><td>–</td><td>Factor de potencia.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>0.4 · <code>03_Criteria_Config</code> — parámetros de cálculo por planta</h3>
+<div class="table-scroll">
+<table>
+  <thead><tr><th>plant_code</th><th>poa_thr_summer</th><th>poa_thr_winter</th><th>degradation</th><th>availability</th><th>guaranteed_epi</th><th>aggregate_by_hour</th><th>energy_ref_sensor</th><th>albedo_formula</th></tr></thead>
+  <tbody>
+    <tr><td>PL2</td><td>500</td><td>500</td><td>1</td><td>1</td><td>0,98</td><td>TRUE</td><td>E_GRID_01</td><td>REF/POA</td></tr>
+    <tr><td>FRA</td><td>500</td><td>500</td><td>1</td><td>1</td><td>0,98</td><td>FALSE</td><td>AP_01</td><td>REF/GHI</td></tr>
+  </tbody>
+</table>
+</div>
+<p>Define el factor garantizado (<code>guaranteed_epi · degradation · availability</code>), qué sensor de energía es la "medida" (<code>energy_ref_sensor</code>), si se agrega a horario antes de comparar, y la fórmula de albedo. PL2 agrega a horario y mide con el contador <code>E_GRID_01</code>; FRA no agrega y mide con <code>AP_01</code>.</p>
+
+<h3>0.5 · <code>04_Criteria_Selection</code> — activación de criterios por planta</h3>
+<p>Una columna por criterio (<code>c1…c9</code>). El valor <code>-1</code> <strong>desactiva</strong> el criterio. Para c1–c7 (numéricos): <code>0</code> = exigir lectura no nula; <code>&gt;0</code> = exigir que se supere ese umbral. c8–c9 son booleanos.</p>
+<div class="table-scroll">
+<table>
+  <thead><tr><th>planta</th><th>c1 POA</th><th>c2 GHI</th><th>c3 DHI</th><th>c4 REF</th><th>c5 h/día POA</th><th>c6 h/día GHI</th><th>c7 Setpoint kW</th><th>c8 Viento</th><th>c9 PF</th></tr></thead>
+  <tbody>
+    <tr><td>PL2</td><td>0</td><td>0</td><td>−1 (off)</td><td>−1 (off)</td><td>3</td><td>−1 (off)</td><td>15 000</td><td>TRUE</td><td>TRUE</td></tr>
+    <tr><td>FRA</td><td>0</td><td>0</td><td>0</td><td>0</td><td>−1 (off)</td><td>−1 (off)</td><td>−1 (off)</td><td>TRUE</td><td>TRUE</td></tr>
+  </tbody>
+</table>
+</div>
+<p class="small">PL2 exige POA y GHI con lectura, ≥3 h/día de POA sobre umbral, setpoint ≥ 15 000 kW, sin alarma de viento y PF en rango. FRA exige las cuatro medias con lectura, sin viento y PF; desactiva horas-día y setpoint.</p>
+
+<h3>0.6 · <code>05_Sensor_Outliers</code> — limpieza de sensores</h3>
+<p>Por familia (POA/GHI/DHI/REF) y planta: <code>iqr_k</code> (factor Tukey de IQR; <code>0</code> = desactivado) y <code>max_dev</code> (umbral del filtrado cross-sensor progresivo; <code>0</code> = desactivado), más <code>TAMB_max_dev</code>. Hoy: PL2 aplica <code>POA_max_dev = 0,05</code>; FRA aplica <code>GHI_max_dev = 0,05</code>; el resto desactivado.</p>
+
+<h3>0.7 · <code>06_Limits</code> — límites físicos para detección de anomalías</h3>
+<div class="table-scroll">
+<table>
+  <thead><tr><th>parametro</th><th>rango_min</th><th>rango_max</th><th>abrupt_change</th><th>dead_threshold</th></tr></thead>
+  <tbody>
+    <tr><td>POA / GHI / DHI / REF (W/m²)</td><td>−6</td><td>1 500</td><td>800</td><td>0,0001</td></tr>
+    <tr><td>T_AMB (ºC)</td><td>−30</td><td>50</td><td>4</td><td>0,0001</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="note"><strong>Nota de versión.</strong> El código v3 de <code>scada_proc</code> espera además una hoja <code>07_Irrandiance_Thresholds</code> (umbrales mensuales POA/GHI). Esa hoja <em>no existe todavía</em> en el libro actual; cuando falta, los umbrales mensuales caen a 0 y conviven con los <code>poa_threshold_summer/winter</code> heredados de <code>03_Criteria_Config</code>. Ver <a href="#apx">Apéndice</a>.</div>
+
+
+<!-- ============================================================= -->
+<!-- ETAPA 1 -->
+<!-- ============================================================= -->
+<section class="cover" id="e1">
+  <div class="stage-kicker">Etapa 01 · Ingesta</div>
+  <div class="stage-num">01</div>
+  <div class="stage-title">Ingesta del SCADA</div>
+  <div class="stage-desc">Lleva los datos crudos del SCADA de cada planta a una tabla común con nomenclatura estándar. Es pura conformación: renombra y unifica el esquema, pero no descarta ni recalcula nada.</div>
+  <div class="stage-artifacts">
+    <span class="chip"><b>Notebook</b> scada_ingest</span>
+    <span class="chip"><b>Entrada</b> gold.&lt;planta&gt;</span>
+    <span class="chip"><b>Salida</b> scada_raw</span>
+  </div>
+  <div class="stage-flow">gold.&lt;scada_table_name&gt; ──▶ scada_raw</div>
+</section>
+
+<h2>1 · Ingesta del SCADA — <code>scada_ingest</code></h2>
+
+<p><strong>Qué hace:</strong> por cada planta activa lee su tabla gold, renombra columnas según <code>02_Sensors_Mapping</code> y hace <code>MERGE</code> en la tabla unificada <code>scada_raw</code>.</p>
+
+<h3>1.1 · Lógica paso a paso</h3>
+<ol>
+  <li><strong>Esquema completo.</strong> Antes del bucle, <code>ensure_full_schema('scada_raw')</code> añade (<code>ALTER TABLE … ADD COLUMNS</code>) cualquier columna destino del mapping que falte, como <code>DOUBLE</code>. Garantiza un esquema de sensores estable, independiente del orden de las plantas.</li>
+  <li><strong>Ventana incremental.</strong> Si <code>incremental=True</code>, el arranque efectivo es <code>max(Date en scada_raw para la planta) − overlap_hours</code>; la primera ingesta lee todo. Un <code>period_start</code> global lo sobreescribe.</li>
+  <li><strong>Lectura y normalización.</strong> Lee <code>gold.&lt;scada_table_name&gt;</code>; avisa de columnas del origen no mapeadas (se ignoran); renombra <code>original → destino</code>; exige una columna <code>Date</code>; aplica filtros de periodo; rellena con <code>NULL</code> las columnas destino ausentes; proyecta <code>['Date'] + todas_las_destino</code>.</li>
+  <li><strong>Merge.</strong> Añade columnas de control <code>plant_code</code>, <code>source_file</code>, <code>ingested_at</code> y hace <code>MERGE</code> en <code>scada_raw</code> con clave <code>(plant_code, Date)</code> (update + insert). Idempotente.</li>
+  <li><strong>Log.</strong> Una fila por planta en <code>ingested_files</code> con <code>row_count</code>, <code>status</code> ('ok'/'failed') y, si falla, el error (500 car.).</li>
+</ol>
+
+<div class="note"><strong>Qué NO hace esta capa:</strong> no detecta outliers, no calcula criterios, no aplica límites, no convierte unidades, no agrega temporalmente. Si una lectura llega como −9 999 W/m², se almacena tal cual; la limpieza es trabajo de la etapa 2.</div>
+
+<h3>1.2 · Parámetros</h3>
+<div class="table-scroll">
+<table>
+  <thead><tr><th>Parámetro</th><th>Default</th><th>Uso</th></tr></thead>
+  <tbody>
+    <tr><td><code>plant_codes</code></td><td><code>None</code></td><td>Lista/JSON/coma. Vacío = todas las activas.</td></tr>
+    <tr><td><code>period_start</code> / <code>period_end</code></td><td><code>None</code></td><td>Acotan la lectura (sobreescriben el incremental).</td></tr>
+    <tr><td><code>incremental</code></td><td><code>True</code></td><td>Lee solo desde el último <code>Date</code> ingerido.</td></tr>
+    <tr><td><code>overlap_hours</code></td><td><code>0</code></td><td>Re-lee las últimas N h para capturar datos tardíos.</td></tr>
+  </tbody>
+</table>
+</div>
+
+
+<!-- ============================================================= -->
+<!-- ETAPA 2 -->
+<!-- ============================================================= -->
+<section class="cover" id="e2">
+  <div class="stage-kicker">Etapa 02 · Validación</div>
+  <div class="stage-num">02</div>
+  <div class="stage-title">Procesado y validación del SCADA</div>
+  <div class="stage-desc">El corazón de la calidad del dato. Limpia cada sensor (límites físicos, outliers estadísticos, contraste entre sensores), calcula medias filtradas y albedo, y aplica los nueve criterios de validez que deciden qué intervalos entran en el cálculo del PR.</div>
+  <div class="stage-artifacts">
+    <span class="chip"><b>Notebook</b> scada_proc</span>
+    <span class="chip"><b>Entrada</b> scada_raw</span>
+    <span class="chip"><b>Salida</b> scada_proc</span>
+    <span class="chip"><b>Criterios</b> C1–C9 → all_valid</span>
+  </div>
+  <div class="stage-flow">scada_raw ──▶ [limpieza + C1–C9] ──▶ scada_proc</div>
+</section>
+
+<h2>2 · Procesado y validación — <code>scada_proc</code></h2>
+
+<p>Lee <code>scada_raw</code> (filtrado por planta y ventana), lo trae a pandas y aplica una cadena de limpieza seguida del cálculo de criterios. El principio rector: <strong>un intervalo es válido si y solo si supera todos sus criterios activos</strong> (<code>all_valid = 1</code>).</p>
+
+<div class="note"><strong>Solape diario obligatorio.</strong> El parámetro <code>overlap_days</code> tiene un mínimo de 1: como C5/C6 agregan por día natural, el último día parcial debe reprocesarse para que las sumas diarias sean correctas.</div>
+
+<h3>2.1 · Cadena de limpieza (antes de los criterios)</h3>
+
+<div class="crit">
+  <div class="title"><span class="label">Paso A</span>Detección de anomalías por límites físicos (<code>06_Limits</code>)</div>
+  <p>Para cada sensor de irradiancia y T_AMB se genera un valor limpio y una bandera <code>&lt;col&gt;_flag</code>:</p>
+<pre>missing       → valor NaN
+out_of_range  → valor &lt; rango_min  o  &gt; rango_max     (se anula)
+dead          → |valor| &gt; min_significant y |Δ| &lt; dead_threshold  (se marca, NO se anula)
+abrupt        → |Δ| &gt; abrupt_change                  (se marca, NO se anula)</pre>
+  <p class="small">Solo <code>missing</code> y <code>out_of_range</code> ponen el valor a NaN. <code>dead</code>/<code>abrupt</code> son informativos.</p>
+</div>
+
+<div class="crit">
+  <div class="title"><span class="label">Paso B</span>Outliers estadísticos · IQR de Tukey</div>
+  <p>Por sensor POA/GHI/DHI/REF, solo en horas de día (<code>s ≥ iqr_daytime_min_wm2</code>, def. 20 W/m²) y con <code>k&gt;0</code> y ≥8 puntos: se anulan los valores fuera de <code>[Q1−k·IQR, Q3+k·IQR]</code> (flag <code>outlier_iqr</code>). T_AMB siempre con k=0 (off). Hoy <code>iqr_k</code> está a 0 en todas las plantas, así que este paso está inactivo.</p>
+</div>
+
+<div class="crit">
+  <div class="title"><span class="label">Paso C</span>Filtrado cross-sensor progresivo</div>
+  <p>Detecta el sensor desviado dentro de una familia (p. ej. POA_01/02/03). Solo actúa con <strong>≥3 sensores activos</strong> y <code>max_dev&gt;0</code>. En cada pasada (máx. 3) calcula la media de los sensores activos y la desviación relativa <code>|x−avg|/|avg|</code>; si algún intervalo supera el umbral, <strong>desactiva el peor sensor</strong> y recalcula. Produce las columnas <code>&lt;col&gt;_filt</code> y la media de familia <code>&lt;FAM&gt;_avg_filt</code>.</p>
+  <p class="small">Trazabilidad: el sensor descartado queda como <code>NULL</code> en su <code>_filt</code>, visible en SQL. La media filtrada ignora los NULL.</p>
+</div>
+
+<div class="crit">
+  <div class="title"><span class="label">Paso D</span>Albedo medido</div>
+<pre>ALB_&lt;sfx&gt; = REF_&lt;sfx&gt; / base_&lt;sfx&gt;        base = GHI (def.) o POA según albedo_formula
+            (denom 0 o ratio&lt;0 → 0 ; NaN → NaN)
+ALB_avg_filt = media de los ALB con 0 &lt; ALB &lt; 1</pre>
+  <p class="small">El albedo físicamente ∈ [0,1]; valores ≥1 indican fallo del sensor de reflexión y se excluyen. Es informativo y alimenta el CSV de meteo (etapa 3); no participa en ningún criterio.</p>
+</div>
+
+<h3>2.2 · Los nueve criterios de validez (C1–C9)</h3>
+<p>Pre-cálculo: <code>poa_above_thr = 1</code> si <code>POA_avg_filt ≥ umbral_mes</code> (análogo <code>ghi_above_thr</code>); <code>dt_h</code> = paso temporal en horas (moda de <code>Date.diff()</code>, def. 0,25 h).</p>
+
+<div class="table-scroll">
+<table>
+  <thead><tr><th>Crit.</th><th>Qué comprueba</th><th>Fórmula (deployed)</th><th>Param. en <code>04</code></th></tr></thead>
+  <tbody>
+    <tr><td><b>C1</b></td><td>Media POA filtrada sana</td><td><code>c1&gt;0 ? POA_avg_filt ≥ c1 : POA_avg_filt no nulo</code></td><td><code>c1</code></td></tr>
+    <tr><td><b>C2</b></td><td>Media GHI filtrada sana</td><td>ídem sobre <code>GHI_avg_filt</code></td><td><code>c2</code></td></tr>
+    <tr><td><b>C3</b></td><td>Media DHI filtrada sana</td><td>ídem sobre <code>DHI_avg_filt</code></td><td><code>c3</code></td></tr>
+    <tr><td><b>C4</b></td><td>Media REF filtrada sana</td><td>ídem sobre <code>REF_avg_filt</code></td><td><code>c4</code></td></tr>
+    <tr><td><b>C5</b></td><td>Horas/día con POA sobre umbral</td><td><code>Σ_día(poa_above_thr)·dt_h ≥ c5</code></td><td><code>c5</code> (horas)</td></tr>
+    <tr><td><b>C6</b></td><td>Horas/día con GHI sobre umbral</td><td><code>Σ_día(ghi_above_thr)·dt_h ≥ c6</code></td><td><code>c6</code> (horas)</td></tr>
+    <tr><td><b>C7</b></td><td>Setpoint a capacidad nominal (sin curtailment)</td><td><code>SETPOINT ≥ c7</code></td><td><code>c7</code> (kW)</td></tr>
+    <tr><td><b>C8</b></td><td>Sin alarma de viento</td><td><code>WA ≠ 1</code></td><td><code>c8</code> (bool)</td></tr>
+    <tr><td><b>C9</b></td><td>Factor de potencia sano</td><td><code>0,98 &lt; PF &lt; 1,0</code> (si no hay PF → 1)</td><td><code>c9</code> (bool)</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="crit">
+  <div class="title"><span class="label">∧</span>Validez global · <code>all_valid</code></div>
+<pre>all_valid = ∏ (criterios activos)
+  · c1..c7 activos salvo que su valor sea &lt; 0  (−1 = OFF)
+  · c8, c9 activos si valen True
+hours_aggregated = dt_h  si all_valid = 1 ; 0 en otro caso</pre>
+  <p class="small">Solo los intervalos con <code>all_valid = 1</code> entran en el cómputo del PR (etapa 6). <code>hours_aggregated</code> sumado equivale a las "horas operativas válidas".</p>
+</div>
+
+<h4>Por qué C5/C6 invalidan el día entero</h4>
+<p>C5 y C6 no miran el intervalo, sino el <strong>día completo</strong>: si un día no acumula las horas mínimas de sol útil (nieblas persistentes, tormenta, sombreado prolongado), su comportamiento no es representativo y <em>todos</em> sus intervalos se invalidan, aunque algún instante concreto sea óptimo.</p>
+
+<h3>2.3 · Ejemplos numéricos (Plaza II · resolución 15 min)</h3>
+
+<div class="example">
+  <header class="ex"><span class="badge">CASO 1 · OK</span><span class="title">Sensor POA desviado, pero intervalo válido</span><span class="when">08:45</span></header>
+  <h4>Lecturas (scada_raw)</h4>
+  <div class="calc-grid">
+    <div class="kv"><div class="k">POA_01</div><div class="v">132,16</div></div>
+    <div class="kv"><div class="k">POA_02</div><div class="v">132,42</div></div>
+    <div class="kv"><div class="k">POA_03</div><div class="v">144,13</div></div>
+    <div class="kv"><div class="k">GHI_01</div><div class="v">67,38</div></div>
+    <div class="kv"><div class="k">SETPOINT_01</div><div class="v">15 015 kW</div></div>
+    <div class="kv"><div class="k">WA / PF</div><div class="v">0 / 0,995</div></div>
+  </div>
+  <h4>Paso C — filtrado cross-sensor (max_dev 5 %)</h4>
+<pre>avg = (132,16+132,42+144,13)/3 = 136,24
+POA_03: |144,13−136,24|/136,24 = 5,79 % &gt; 5 %  →  POA_03_filt = NULL (descartado)
+POA_avg_filt = media(132,16 ; 132,42) = 132,29 W/m²</pre>
+  <h4>Criterios activos en PL2</h4>
+<pre>C1 POA no nulo          132,29 ≠ NULL     → 1
+C2 GHI no nulo          67,38 ≠ NULL      → 1
+C5 ≥3 h/día POA&gt;500     ese día sí        → 1
+C7 SETPOINT ≥ 15 000    15 015 ≥ 15 000   → 1
+C8 sin viento           WA = 0            → 1
+C9 0,98&lt;PF&lt;1            0,995             → 1</pre>
+  <p><span class="verdict ok">all_valid = 1</span>&nbsp; El intervalo entra en el PR aunque se haya descartado un piranómetro. <code>POA_03_filt = NULL</code> queda visible para auditoría.</p>
+</div>
+
+<div class="example">
+  <header class="ex"><span class="badge fail">CASO 2 · FAIL</span><span class="title">Curtailment — setpoint por debajo del nominal</span><span class="when">12:00</span></header>
+  <div class="calc-grid">
+    <div class="kv"><div class="k">POA_avg_filt</div><div class="v">607,16</div></div>
+    <div class="kv"><div class="k">SETPOINT_01</div><div class="v">12 390 kW</div></div>
+    <div class="kv"><div class="k">E_GRID_01</div><div class="v">9 479 kW</div></div>
+  </div>
+<pre>C7 SETPOINT ≥ 15 000    12 390 &lt; 15 000   → 0   ← curtailment</pre>
+  <p><span class="verdict no">all_valid = 0</span>&nbsp; A pleno sol, pero la planta opera por debajo de su capacidad (consigna de red/mercado): su producción no es comparable con la esperada y se excluye.</p>
+</div>
+
+
+<!-- ============================================================= -->
+<!-- ETAPA 3 -->
+<!-- ============================================================= -->
+<section class="cover" id="e3">
+  <div class="stage-kicker">Etapa 03 · Puente Fabric → PVsyst</div>
+  <div class="stage-num">03</div>
+  <div class="stage-title">Exportación de meteo a SharePoint</div>
+  <div class="stage-desc">Traduce el SCADA validado al CSV que espera el PVsyst CLI y lo publica en SharePoint mediante Microsoft Graph, usando una app de Azure AD cuyo secreto vive en Key Vault. Es el puente entre el mundo Fabric y el PC donde corre la simulación.</div>
+  <div class="stage-artifacts">
+    <span class="chip"><b>Notebook</b> meteo_export</span>
+    <span class="chip"><b>Entrada</b> scada_proc</span>
+    <span class="chip"><b>Salida</b> SharePoint/inbox/*.csv</span>
+    <span class="chip"><b>Auth</b> Azure AD + Key Vault + Graph</span>
+  </div>
+  <div class="stage-flow">scada_proc ──▶ CSV (cp1252) ──PUT Graph──▶ SharePoint Pvsyst1/inbox</div>
+</section>
+
+<h2>3 · Exportación de meteo — <code>meteo_export</code></h2>
+
+<p>Para cada planta activa construye el CSV de meteorología medida, guarda una copia de auditoría en el lakehouse y lo sube a SharePoint con un <code>PUT</code> autenticado contra Microsoft Graph.</p>
+
+<div class="note"><strong>¿Por qué Graph y no el shortcut?</strong> Escribir a un shortcut de SharePoint desde Spark no garantiza permiso de escritura. Una app de Azure AD con permiso explícito sobre la biblioteca tiene control total: mismo destino, mecanismo de auth fiable.</div>
+
+<h3>3.1 · Formato exacto del CSV (entrada del PVsyst CLI)</h3>
+<pre>Date,GHI (W/m2),T_AMB (ºC),ALB,POA (W/m2)
+2/16/2026 0:15,0,10.57,0,0
+...
+2/17/2026 12:00,516.61,12.08,0.082,607.16</pre>
+<ul>
+  <li>Encoding <strong>Windows-1252 (cp1252)</strong>. El carácter del header es la ordinal "ºC" (U+00BA), no el símbolo de grado, para mantener compatibilidad byte a byte con históricos.</li>
+  <li>Saltos de línea <strong>CRLF</strong>; separador <strong>coma</strong>; decimal <strong>punto</strong>.</li>
+  <li>Fecha en formato US <code>M/D/YYYY H:MM</code> (mes/día/hora sin zero-padding; minutos a 2 dígitos).</li>
+  <li>Hasta 4 decimales sin ceros sobrantes; los nulos se emiten como <strong>celda vacía</strong>.</li>
+</ul>
+
+<h3>3.2 · Mapeo de columnas</h3>
+<div class="table-scroll">
+<table>
+  <thead><tr><th>Columna CSV</th><th>Origen <code>scada_proc</code></th><th>Observaciones</th></tr></thead>
+  <tbody>
+    <tr><td><code>GHI (W/m2)</code></td><td><code>GHI_01</code></td><td>Irradiancia global horizontal medida.</td></tr>
+    <tr><td><code>T_AMB (ºC)</code></td><td><code>T_AMB_01</code></td><td>Temperatura ambiente.</td></tr>
+    <tr><td><code>ALB</code></td><td><code>ALB_avg_filt</code></td><td>Albedo medio filtrado.</td></tr>
+    <tr><td><code>POA (W/m2)</code></td><td><code>POA_avg_filt</code></td><td>Vacío si todos los POA del intervalo se descartaron.</td></tr>
+  </tbody>
+</table>
+</div>
+<p class="small">Nombre del fichero: <code>&lt;plant_code&gt;_RawData_&lt;YYYYMMDD&gt;-&lt;YYYYMMDD&gt;.csv</code> (p. ej. <code>PL2_RawData_20260216-20260429.csv</code>). El periodo se calcula como min/max de <code>Date</code> en el frame exportado. <code>WS_01</code> y la potencia no se incluyen: el contrato del CLI no los necesita.</p>
+
+<h3>3.3 · Autenticación · Azure AD + Key Vault + Microsoft Graph</h3>
+<div class="table-scroll">
+<table>
+  <thead><tr><th>Recurso</th><th>Valor</th></tr></thead>
+  <tbody>
+    <tr><td>App Azure AD</td><td><code>PVSyst1_EPI</code> (client_id <code>58f369e5-…</code>, tenant <code>943fa85b-…</code>)</td></tr>
+    <tr><td>Key Vault</td><td><code>https://apicredentialsenerland.vault.azure.net/</code> · secreto <code>PVSyst1EPISecret</code></td></tr>
+    <tr><td>Sitio SharePoint</td><td><code>enerlandgroup.sharepoint.com:/sites/Pvsyst1</code> · biblioteca <code>Documentos</code></td></tr>
+  </tbody>
+</table>
+</div>
+<ol>
+  <li>El notebook recupera el secreto con <code>notebookutils.credentials.getSecret(...)</code> (la identidad del workspace se autentica transparente contra Key Vault).</li>
+  <li><code>POST .../oauth2/v2.0/token</code> con grant <em>client_credentials</em> y scope <code>https://graph.microsoft.com/.default</code> → access token (1 h).</li>
+  <li>Resuelve <code>site_id</code> (GET <code>sites/{path}</code>) y <code>drive_id</code> (GET <code>sites/{id}/drives</code>, busca "Documentos").</li>
+  <li><code>PUT …/drives/{drive_id}/root:/inbox/&lt;fichero&gt;:/content</code> con el cuerpo en bytes cp1252, <code>Content-Type: application/octet-stream</code>. Endpoint simple válido para &lt; 4 MB (nuestros CSV pesan &lt; 1 MB).</li>
+</ol>
+<p class="small">El secreto nunca llega al código ni a los logs: Key Vault → memoria → header HTTPS. Copia de auditoría local en <code>Files/inbox_audit/&lt;plant_code&gt;/</code>.</p>
+
+
+<!-- ============================================================= -->
+<!-- ETAPA 4 -->
+<!-- ============================================================= -->
+<section class="cover" id="e4">
+  <div class="stage-kicker">Etapa 04 · Simulación (fuera de Fabric)</div>
+  <div class="stage-num">04</div>
+  <div class="stage-title">Simulación PVsyst en el PC</div>
+  <div class="stage-desc">Un servicio en el PC del operador (el "notifier") vigila SharePoint, descarga la meteo, ejecuta el PVsyst CLI con esa meteo real, devuelve los resultados a SharePoint y avisa por Teams. Es la única etapa que no corre en la nube.</div>
+  <div class="stage-artifacts">
+    <span class="chip"><b>Script</b> pc_scripts/notifier (main.py)</span>
+    <span class="chip"><b>Motor</b> PVsyst CLI vía .bat</span>
+    <span class="chip"><b>Auth</b> Microsoft Graph</span>
+    <span class="chip"><b>Aviso</b> Teams</span>
+  </div>
+  <div class="stage-flow">SharePoint/inbox ──▶ PVsyst CLI ──▶ projects/&lt;planta&gt;/results_out ──▶ SharePoint/&lt;planta&gt;</div>
+</section>
+
+<h2>4 · Simulación PVsyst en el PC — <code>notifier</code></h2>
+
+<p>El <em>notifier</em> es un orquestador en Python (<code>main.py</code>) que corre periódicamente en el PC <code>PVSYST1</code> (Task Scheduler). Desde su reescritura, <strong>Graph es la fuente de verdad</strong> de la entrega: ya no depende de la sincronización de OneDrive.</p>
+
+<h3>4.1 · El bucle local, paso a paso</h3>
+<ol>
+  <li><strong>Descarga meteo (Graph).</strong> Lista <code>/inbox</code> en SharePoint y descarga lo que haya cambiado respecto al estado guardado (<code>state.json</code>). El estado <em>solo</em> se persiste al final si no hubo fallos, para que una simulación fallida no se dé por procesada.</li>
+  <li><strong>Categoriza</strong> los ficheros: <code>.prj</code> (altas de planta), <code>.v??</code> (variantes) y <code>.csv</code> (simulaciones).</li>
+  <li><strong>Altas y variantes:</strong> ejecuta <code>auto_alta.bat</code> de forma aislada (copia el fichero y sus acompañantes a un directorio temporal).</li>
+  <li><strong>Simulaciones:</strong> ejecuta <code>auto_run.bat "&lt;inbox&gt;"</code> <em>una sola vez para todos los CSV</em>. El éxito por CSV se detecta buscando la cadena <code>[ OK ] &lt;fichero&gt;</code> en el log del .bat. La planta se deduce de <code>csv.name.split('_')[0]</code>.</li>
+  <li><strong>Recoge salidas</strong> en <code>projects/&lt;Planta&gt;/results_out/</code> (CSV/PDF/TXT) y <code>.../reference/</code>, filtrando por fecha de modificación ≥ inicio del ciclo.</li>
+  <li><strong>Sube resultados (Graph)</strong> a <code>Documentos/&lt;Planta&gt;/</code> y los logs del día a <code>LOGS/</code>.</li>
+  <li><strong>Cierre:</strong> si no hubo fallos, marca los meteo como procesados y los borra de <code>/inbox</code>. Si hubo fallos, no marca ni borra: el siguiente ciclo reintenta.</li>
+  <li><strong>Notifica</strong> por una <em>Adaptive Card</em> de Teams (vía webhook de Power Automate) con una línea ✓/✗ por evento.</li>
+</ol>
+
+<div class="note"><strong>Dónde vive el comando de PVsyst.</strong> Python nunca llama a PVsyst directamente: invoca los <code>.bat</code> (<code>cmd /c "&lt;bat&gt; "&lt;dir&gt;""</code>, encoding cp1252, timeout 3600 s). El comando real del PVsyst CLI, el fichero de proyecto y sus parámetros están dentro de <code>auto_alta.bat</code> / <code>auto_run.bat</code> (no incluidos en el paquete del notifier).</div>
+
+<h3>4.2 · Configuración (<code>config.yaml</code>)</h3>
+<p>Define rutas locales (<code>inbox</code>, <code>projects</code>, <code>logs</code>, <code>state_file</code>), los <code>.bat</code>, el webhook de Teams y el bloque <code>graph</code> (mismo <code>client_id</code>/<code>tenant_id</code>/sitio que la etapa 3; biblioteca <code>Documentos</code>, carpeta <code>inbox</code>, logs en <code>LOGS</code>). El secreto se lee de la variable de entorno <code>PVSYST1_EPI_SECRET</code>.</p>
+
+<div class="gap"><b>Seguridad:</b> el <code>README</code> y el <code>config.yaml</code> del repo contienen un <em>client secret</em> y una URL de webhook reales. Deben rotarse y eliminarse del control de versiones. Ver <a href="#apx">Apéndice</a>.</div>
+
+
+<!-- ============================================================= -->
+<!-- ETAPA 5 -->
+<!-- ============================================================= -->
+<section class="cover" id="e5">
+  <div class="stage-kicker">Etapa 05 · Ingesta PVsyst</div>
+  <div class="stage-num">05</div>
+  <div class="stage-title">Ingesta de la simulación PVsyst</div>
+  <div class="stage-desc">Recoge los CSV que el PVsyst CLI dejó en SharePoint, los parsea (cabecera PVSYST de ~10 líneas, separador punto y coma) y los normaliza a una tabla común de energía esperada, lista para comparar con el SCADA.</div>
+  <div class="stage-artifacts">
+    <span class="chip"><b>Notebook</b> csv_ingest</span>
+    <span class="chip"><b>Entrada</b> Files/Raw PVSyst1/&lt;planta&gt;/*.csv</span>
+    <span class="chip"><b>Salida</b> raw_pvsyst · proc_pvsyst</span>
+  </div>
+  <div class="stage-flow">CSV PVsyst ──▶ raw_pvsyst (verbatim) + proc_pvsyst (normalizado) ──▶ pending_runs</div>
+</section>
+
+<h2>5 · Ingesta de PVsyst — <code>csv_ingest</code></h2>
+
+<h3>5.1 · Descubrimiento e idempotencia</h3>
+<p>Recorre las subcarpetas de <code>Files/Raw PVSyst1/</code> (salta <code>INBOX, CONFIG, LOGS, PERFORMANCE, TRAZABILIDAD, _LOGS</code>) buscando <code>.csv</code>. La idempotencia es a nivel de fichero: se ignoran los que ya figuran con <code>status='ok'</code> en <code>ingested_files</code> (clave <code>file_path</code>). La planta se valida contra la tabla <code>T01_PLANTS</code> del Excel, casando el prefijo del fichero con <code>pvsyst_file</code> o <code>plant_code</code> (o, en su defecto, confiando en el nombre de la carpeta).</p>
+
+<h3>5.2 · Parseo del CSV de PVsyst</h3>
+<p>El CSV de <em>salida</em> de PVsyst es distinto del de entrada (etapa 3): trae una cabecera de metadatos <code>PVSYST x.y.z; Project; Geographical Site; …</code> y usa <strong>punto y coma</strong> como separador. El parser:</p>
+<ul>
+  <li>Busca la línea cuyo primer token es <code>date</code> → es la cabecera real; descarta las ~10 líneas de metadatos y la fila de unidades que va justo debajo.</li>
+  <li>Lee con <code>sep=';'</code>, <code>decimal='.'</code>; fechas tolerantes (<code>dd/mm/yy</code>, luego <code>dd/mm/YYYY</code>, luego <code>dayfirst=True</code>).</li>
+  <li>Renombra a nomenclatura canónica: <code>GlobHor→GHI</code>, <code>DiffHor→DHI</code>, <code>T_Amb→T_AMB</code>, <code>WindVel→WS</code>, <code>GlobInc/GlobEff→POA</code> (prefiere <code>GlobEff</code>, la efectiva tras pérdidas ópticas), <code>Alb_Gl→ALB</code>, <code>TArray→T_ARRAY</code>, <code>E_Grid/EOutInv→E_Grid</code>.</li>
+</ul>
+
+<h3>5.3 · Tablas escritas</h3>
+<ul>
+  <li><strong><code>raw_pvsyst</code></strong> — copia verbatim (todas las columnas salvo claves como texto). <code>MERGE</code> solo-insert por <code>(plant_code, Date, source_file)</code>.</li>
+  <li><strong><code>proc_pvsyst</code></strong> — solo el conjunto canónico <code>{plant_code, Date, GHI, DHI, T_AMB, ALB, POA, E_Grid}</code> con coerción numérica. <code>MERGE</code> upsert por <code>(plant_code, Date)</code>. <strong>Esta es la energía esperada</strong> que consumirá <code>pr_runner</code>.</li>
+</ul>
+<p>Al final recalcula <code>pending_runs</code> con el <strong>solape</strong> de rangos entre <code>scada_proc</code> y <code>proc_pvsyst</code> (<code>GREATEST(starts) … LEAST(ends)</code>): solo se puede calcular PR donde hay a la vez medida y simulación.</p>
+
+
+<!-- ============================================================= -->
+<!-- ETAPA 6 -->
+<!-- ============================================================= -->
+<section class="cover" id="e6">
+  <div class="stage-kicker">Etapa 06 · El cálculo</div>
+  <div class="stage-num">06</div>
+  <div class="stage-title">Cálculo del Performance Ratio</div>
+  <div class="stage-desc">El núcleo del sistema. Sobre los intervalos válidos, suma la energía medida y la compara con la energía garantizada (PVsyst × factor contractual). Produce el veredicto PASS/FAIL, las desviaciones y el reporte HTML para el cliente.</div>
+  <div class="stage-artifacts">
+    <span class="chip"><b>Notebook</b> pr_runner</span>
+    <span class="chip"><b>Entradas</b> scada_proc · proc_pvsyst</span>
+    <span class="chip"><b>Salida</b> pr_results + reporte HTML</span>
+  </div>
+  <div class="stage-flow">medida vs esperada vs garantizada ──▶ PASS / FAIL</div>
+</section>
+
+<h2>6 · Cálculo del PR — <code>pr_runner</code></h2>
+
+<p>Lee <code>scada_proc</code> y <code>proc_pvsyst</code> (filtrados por planta y periodo), los alinea por <code>Date</code> y calcula el test sobre los intervalos con <code>all_valid = 1</code>. Lee del Excel <code>01_Plants</code>, <code>02_Sensors_Mapping</code> (reglas de agregación) y <code>03_Criteria_Config</code> (el "contrato"). <strong>No recalcula los criterios</strong>: los lee ya hechos de <code>scada_proc</code> y solo cuenta cuántos intervalos falla cada uno.</p>
+
+<h3>6.1 · Resolución y agregación</h3>
+<ul>
+  <li>Si <code>aggregate_by_hour</code> (caso PL2): <code>target_res = max(1h, res_scada, res_pvsyst)</code> (fuerza horario).</li>
+  <li>Si no (caso FRA): <code>target_res = max(res_scada, res_pvsyst)</code> (la más fina común).</li>
+  <li>Al re-muestrear, las banderas <code>c1..c9</code> y <code>all_valid</code> se agregan con <strong><code>min</code></strong> (una hora es válida solo si todos sus cuartos lo son); el resto, con su regla (por defecto <code>mean</code>).</li>
+</ul>
+
+<h3>6.2 · Las fórmulas (exactas)</h3>
+<pre>guar_f = guaranteed_epi · degradation_factor · availability_factor      (def. 0,98 · 1 · 1)
+
+por intervalo (kWh):
+  medida_kWh       = &lt;energy_ref_sensor&gt; · dt_h        (E_GRID_01 en PL2, AP_01 en FRA)
+  esperada_kWh     = E_Grid_pvsyst       · dt_h
+  garantizada_kWh  = esperada_kWh · guar_f
+
+solo sobre intervalos válidos (all_valid = 1):
+  tm = Σ medida_kWh
+  te = Σ esperada_kWh
+  tg = Σ garantizada_kWh
+
+veredicto:
+  passed     = (tm ≥ tg)
+  delta_kWh  = tm − tg
+  delta_pct  = (tm − tg) / tg · 100
+  ratio      = tm / tg</pre>
+
+<div class="kpi-row">
+  <div class="kpi"><div class="k">Energía medida (tm)</div><div class="v">contador real</div></div>
+  <div class="kpi"><div class="k">Energía esperada (te)</div><div class="v">PVsyst E_Grid</div></div>
+  <div class="kpi"><div class="k">Energía garantizada (tg)</div><div class="v">te · 0,98</div></div>
+  <div class="kpi"><div class="k">Veredicto</div><div class="v">tm ≥ tg ?</div></div>
+</div>
+
+<div class="note"><strong>Sin corrección de irradiancia/temperatura en esta etapa.</strong> No hay <code>Yr = G/G_STC</code> ni coeficiente térmico: la POA y la temperatura solo gobiernan los criterios (qué intervalos cuentan), no escalan la energía. El modelado físico ya está en la <code>E_Grid</code> de PVsyst. La <code>esperada</code> (te) se almacena pero <em>no</em> interviene en el veredicto: solo cuentan medida vs garantizada.</div>
+
+<h3>6.3 · Salida · tabla <code>pr_results</code></h3>
+<p>Append (1 fila por planta y <code>run_id</code>). Columnas principales:</p>
+<div class="table-scroll">
+<table>
+  <thead><tr><th>Columna</th><th>Significado</th></tr></thead>
+  <tbody>
+    <tr><td><code>run_id, plant_code, plant_name</code></td><td>Identificación del run y la planta.</td></tr>
+    <tr><td><code>period_start, period_end, resolution</code></td><td>Periodo evaluado y resolución del test.</td></tr>
+    <tr><td><code>passed</code></td><td>Veredicto booleano (<code>tm ≥ tg</code>).</td></tr>
+    <tr><td><code>measured_kwh, guaranteed_kwh, expected_kwh</code></td><td>tm, tg, te.</td></tr>
+    <tr><td><code>delta_kwh, delta_pct, ratio</code></td><td>Margen sobre el umbral garantizado.</td></tr>
+    <tr><td><code>valid_days, total_intervals, valid_intervals</code></td><td>Conteos de validez.</td></tr>
+    <tr><td><code>c1_failed … c8_failed</code></td><td>Nº de intervalos que falla cada criterio.</td></tr>
+    <tr><td><code>aggregated_valid_hours, daily_json</code></td><td>Horas válidas y desglose diario (JSON) para el reporte.</td></tr>
+    <tr><td><code>report_html_path, executed_at</code></td><td>Ruta del reporte y marca temporal.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>6.4 · Reporte</h3>
+<p>Carga <code>report_template.py</code> y <code>_logo_b64.py</code>, renderiza el HTML (etapa 9), lo guarda en <code>Files/PERFORMANCE/</code> y lo publica en SharePoint (carpeta <code>PERFORMANCE</code>) por Graph. El parámetro <code>time_shift</code> (horas) permite alinear el SCADA con PVsyst si hubiera desfase horario.</p>
+
+
+<!-- ============================================================= -->
+<!-- ETAPA 7 -->
+<!-- ============================================================= -->
+<section class="cover" id="e7">
+  <div class="stage-kicker">Etapa 07 · Orquestación</div>
+  <div class="stage-num">07</div>
+  <div class="stage-title">Orquestación del pipeline</div>
+  <div class="stage-desc">Encadena los notebooks en el orden correcto, comparte un identificador de ejecución (run_id) entre todos los resultados y se ejecuta como un Data Pipeline de Fabric con dependencias explícitas.</div>
+  <div class="stage-artifacts">
+    <span class="chip"><b>Notebook</b> calculate_pr</span>
+    <span class="chip"><b>Pipeline</b> PR_pipeline (Data Pipeline)</span>
+    <span class="chip"><b>Traza</b> run_id = @pipeline().RunId</span>
+  </div>
+</section>
+
+<h2>7 · Orquestación — <code>calculate_pr</code> + <code>PR_pipeline</code></h2>
+
+<h3>7.1 · <code>calculate_pr</code> (orquestador de PR)</h3>
+<p>Resuelve el <code>run_id</code> (o genera <code>run_AAAAMMDD_HHMMSS</code>), la lista de plantas activas y el periodo (min/max disponible en <code>scada_proc</code> ∪ <code>proc_pvsyst</code>), y por cada planta invoca <code>pr_runner</code> con <code>notebookutils.notebook.run('pr_runner', 3600, {...})</code> (sesión propia, timeout 1 h). Cada llamada se envuelve en try/except y todas comparten el mismo <code>run_id</code> para trazabilidad.</p>
+
+<h3>7.2 · <code>PR_pipeline</code> (Data Pipeline de Fabric)</h3>
+<p>Grafo de actividades (todas notebooks), con dependencias <em>on success</em>:</p>
+<pre>scada_ingest ─┐                         (raíz)
+              └─▶ scada_proc ─┬─▶ meteo_export
+csv_ingest ───────────────────┤
+                               └─▶ calculate_pr ─▶ traceability_export
+   (calculate_pr depende de csv_ingest Y de scada_proc)</pre>
+<ul>
+  <li>Dos raíces en paralelo: <code>scada_ingest</code> y <code>csv_ingest</code>.</li>
+  <li><code>meteo_export</code> y <code>calculate_pr</code> cuelgan ambos de <code>scada_proc</code> (van en paralelo; meteo_export no es prerequisito de calculate_pr).</li>
+  <li><code>run_id = @pipeline().RunId</code> se inyecta en <code>calculate_pr</code> → identifica cada fila de <code>pr_results</code>.</li>
+  <li>Política por actividad: timeout 12 h, sin reintentos. El <em>trigger</em>/horario no está en el JSON: se configura aparte en el workspace.</li>
+</ul>
+
+<div class="note"><strong>Recordatorio del desacople.</strong> Este pipeline <em>no</em> ejecuta PVsyst. <code>meteo_export</code> deja el meteo en SharePoint y <code>csv_ingest</code> recoge lo que PVsyst (PC, etapa 4) haya producido <em>previamente</em>. Por eso <code>calculate_pr</code> calcula con la última simulación disponible, no necesariamente la del meteo recién exportado en el mismo run.</div>
+
+
+<!-- ============================================================= -->
+<!-- ETAPA 8 -->
+<!-- ============================================================= -->
+<section class="cover" id="e8">
+  <div class="stage-kicker">Etapa 08 · Auditoría</div>
+  <div class="stage-num">08</div>
+  <div class="stage-title">Trazabilidad auditable para el cliente</div>
+  <div class="stage-desc">Genera, por planta y periodo, un libro de Excel con fórmulas vivas que reproducen todo el cálculo paso a paso. El cliente puede cambiar un umbral o una lectura y ver recalcularse el PR, lo que hace el resultado defendible y verificable.</div>
+  <div class="stage-artifacts">
+    <span class="chip"><b>Notebook</b> traceability_export</span>
+    <span class="chip"><b>Salida</b> &lt;planta&gt;_PR_Traceability_…xlsx</span>
+    <span class="chip"><b>Destino</b> SharePoint/TRACEABILITY</span>
+  </div>
+</section>
+
+<h2>8 · Trazabilidad auditable — <code>traceability_export</code></h2>
+
+<p>Construye un <code>.xlsx</code> por planta con <strong>fórmulas de Excel vivas</strong> (no valores congelados) en las hojas de cálculo, sobre el periodo de intersección SCADA∩PVsyst (por defecto, últimos 30 días). Sube el libro a <code>TRACEABILITY/&lt;planta&gt;/</code> por Graph y deja copia local de auditoría.</p>
+
+<h3>8.1 · Hojas del libro</h3>
+<div class="table-scroll">
+<table>
+  <thead><tr><th>Hoja</th><th>Contenido</th></tr></thead>
+  <tbody>
+    <tr><td><code>00_Resumen</code></td><td>KPIs por fórmula (energías <code>SUMIFS</code> sobre válidos, delta, ratio, EPI realizado, <code>=IF(B11&gt;=B13,"PASS","FAIL")</code> con relleno verde/rojo).</td></tr>
+    <tr><td><code>01_Config_Contrato</code></td><td>Umbrales aplicados; es la <strong>fuente de todas las referencias</strong> (filas fijas <code>REF_EPI_GUAR</code>, <code>REF_C1_THR</code>…<code>REF_C7_SETPT</code>, <code>REF_DT_H</code>). No reordenar.</td></tr>
+    <tr><td><code>02_SCADA_Raw</code> / <code>03_SCADA_Procesado</code></td><td>Lecturas crudas y procesadas con fórmulas vivas (POA_filt, ALB, c1–c9, all_valid).</td></tr>
+    <tr><td><code>04_PVsyst_Simulacion</code></td><td>Valores simulados (tabla <code>tbl_pv</code>).</td></tr>
+    <tr><td><code>05_Comparacion_Interval</code></td><td>Comparación por resolución de test: <code>E_medida = AVERAGE·dt_h</code>, <code>E_garantizada = E_esperada·EPI·Deg·Avail</code>, <code>valid = MIN(all_valid del bucket)</code>.</td></tr>
+    <tr><td><code>06_Resumen_Diario</code> / <code>07_Grafica</code></td><td>Agregación diaria (<code>SUMPRODUCT</code>) y gráfica de energía válida.</td></tr>
+    <tr><td><code>08_Outliers_POA</code></td><td>Subconjunto de POA descartadas, como valores.</td></tr>
+  </tbody>
+</table>
+</div>
+<p class="small">Las fórmulas usan <code>LET</code>/<code>SUMPRODUCT</code> (Excel 365/2021+). Las celdas de criterio muestran ✓ con formato <code>[Color10]"✓";;""</code>.</p>
+
+
+<!-- ============================================================= -->
+<!-- ETAPA 9 -->
+<!-- ============================================================= -->
+<section class="cover" id="e9">
+  <div class="stage-kicker">Etapa 09 · Entregable</div>
+  <div class="stage-num">09</div>
+  <div class="stage-title">Reporte HTML al cliente</div>
+  <div class="stage-desc">La cara visible del resultado: un informe autocontenido, con la marca Enerlandgroup, que muestra el veredicto, las energías, los gráficos diarios y la auditoría de criterios IEC 61724-2.</div>
+  <div class="stage-artifacts">
+    <span class="chip"><b>Módulo</b> report_template.py</span>
+    <span class="chip"><b>Entrada</b> render_html(pr_result, audit, cfg, resolution)</span>
+    <span class="chip"><b>Salida</b> HTML autocontenido</span>
+  </div>
+</section>
+
+<h2>9 · Reporte HTML — <code>report_template</code></h2>
+
+<p><code>render_html(pr_result, audit, cfg, resolution)</code> devuelve un string HTML (lo invoca <code>pr_runner</code>; no lee tablas ni escribe ficheros por sí mismo). Secciones, en orden:</p>
+<ol>
+  <li>Cabecera con logo + "Performance Ratio Test Report / IEC 61724-2 · &lt;planta&gt;".</li>
+  <li>Tira de título con planta, periodo, resolución y fecha de generación.</li>
+  <li><strong>Tarjeta de veredicto</strong> PASSED/FAILED + 4 KPIs (garantizada GWh, medida GWh, desviación MWh, días válidos).</li>
+  <li>Gráfico de producción diaria (barras / acumulado / delta %) con Chart.js.</li>
+  <li>Perfil diario medio por hora (si hay datos horarios).</li>
+  <li>Auditoría de filtrado IEC: tira de conteos + tarjetas de criterio con % cumplido.</li>
+  <li>Mejores / peores días y tabla de detalle diario con filtro por fecha.</li>
+</ol>
+
+<div class="gap"><b>Inconsistencia a revisar:</b> la plantilla aún muestra <b>solo 4 criterios</b> con la numeración y el significado antiguos (lee <code>c1_failed, c3_failed, c4_failed, c6_failed</code> del audit y los rotula "Criterio 01–04" con descripciones de la versión C1–C4). No refleja el esquema vigente C1–C9 de <code>scada_proc</code>. Ver <a href="#apx">Apéndice</a>.</div>
+<div class="note"><strong>Dependencia de internet:</strong> los gráficos usan Chart.js desde CDN (<code>cdn.jsdelivr.net</code>), por lo que el reporte necesita conexión al abrirse. La exportación a PDF prevista es "Ctrl+P".</div>
+
+
+<!-- ============================================================= -->
+<!-- ETAPA 10 -->
+<!-- ============================================================= -->
+<section class="cover" id="e10">
+  <div class="stage-kicker">Etapa 10 · Operación</div>
+  <div class="stage-num">10</div>
+  <div class="stage-title">Bootstrap y mantenimiento</div>
+  <div class="stage-desc">Las piezas de soporte: el notebook que crea el modelo de datos una sola vez, y los notebooks de mantenimiento que borran plantas, compactan tablas y verifican la consistencia de los criterios.</div>
+  <div class="stage-artifacts">
+    <span class="chip"><b>Notebooks</b> lakehouse_bootstrap · maint_cleanup · maint_verify</span>
+  </div>
+</section>
+
+<h2>10 · Bootstrap y mantenimiento</h2>
+
+<h3>10.1 · <code>lakehouse_bootstrap</code></h3>
+<p>"Medallion layout, ejecutar UNA vez antes de desplegar". Crea las tablas Delta vacías con esquema explícito (<code>pr_results, plants, pending_runs, proc_pvsyst, ingested_files</code> y las de SCADA) y los directorios <code>Files/output</code>, <code>Files/configs</code>.</p>
+<div class="note"><strong>Nota:</strong> el bootstrap nombra las capas SCADA como <code>proc_scada</code>, pero el runtime usa <code>scada_raw</code> / <code>scada_proc</code>. Es la diferencia entre el boceto v2 del bootstrap y los nombres en producción.</p></div>
+
+<h3>10.2 · <code>maint_cleanup</code></h3>
+<p>Borra las filas de una o varias plantas (<code>plant_codes</code>) en <code>scada_raw</code> y <code>scada_proc</code> (<code>DELETE … WHERE plant_code=…</code>) y hace <code>VACUUM … RETAIN 168 HOURS</code> (7 días). Útil para re-procesar una planta desde cero.</p>
+
+<h3>10.3 · <code>maint_verify</code></h3>
+<p>Chequeo de consistencia (hoy fijado a PL2): comprueba que el <code>all_valid</code> almacenado coincide con el producto de los criterios activos (<code>SUM(all_valid) == SUM(c1·c2·c5·c7·c8·c9)</code>) y vuelca el diagnóstico a <code>Files/PERFORMANCE/_diag.json</code>.</p>
+
+
+<!-- ============================================================= -->
+<!-- APÉNDICE -->
+<!-- ============================================================= -->
+<section class="cover" id="apx">
+  <div class="stage-kicker">Apéndice</div>
+  <div class="stage-num">A</div>
+  <div class="stage-title">Notas de versión e inconsistencias a revisar</div>
+  <div class="stage-desc">Discrepancias detectadas entre el código desplegado (v3), la configuración actual y las piezas heredadas. No bloquean la operación, pero conviene resolverlas para evitar confusión y errores sutiles.</div>
+</section>
+
+<h2>Apéndice · Notas de versión e inconsistencias</h2>
+
+<div class="gap">
+  <b>1 · Falta la hoja <code>07_Irrandiance_Thresholds</code>.</b> El código v3 de <code>scada_proc</code> lee umbrales mensuales de irradiancia (<code>POA_M1..12</code>, <code>GHI_M1..12</code>) de esa hoja, pero el libro actual no la tiene. Cuando falta, los umbrales caen a 0 → <code>poa_above_thr</code>/<code>ghi_above_thr</code> valen 1 casi siempre → C5/C6 cuentan prácticamente todas las horas. Mientras tanto, <code>03_Criteria_Config</code> sigue con los <code>poa_threshold_summer/winter = 500</code> heredados, que ya no se usan en C5/C6. <em>Acción:</em> crear la hoja con las curvas mensuales o ajustar el código para usar el umbral de <code>03</code>.
+</div>
+
+<div class="gap">
+  <b>2 · El reporte HTML muestra criterios obsoletos.</b> <code>report_template.py</code> pinta 4 tarjetas (Criterio 01–04) con descripciones de la versión C1–C4 y lee <code>c1/c3/c4/c6_failed</code>. No refleja C1–C9. <em>Acción:</em> actualizar la plantilla al esquema vigente (9 criterios, solo los activos).
+</div>
+
+<div class="gap">
+  <b>3 · <code>c9_failed</code> no se persiste.</b> <code>pr_runner</code> calcula el fallo de C9 (factor de potencia) y lo imprime, pero la tabla <code>pr_results</code> solo guarda <code>c1_failed…c8_failed</code>. <em>Acción:</em> añadir la columna <code>c9_failed</code> a <code>pr_results</code> y al row escrito.
+</div>
+
+<div class="note">
+  <b>4 · <code>expected_kwh</code> (te) se almacena pero no se usa en el veredicto.</b> Es correcto por diseño (el test es medida vs garantizada), pero conviene documentarlo para que nadie lo confunda con el umbral de PASS/FAIL.
+</div>
+
+<div class="note">
+  <b>5 · Nomenclatura del bootstrap.</b> <code>lakehouse_bootstrap</code> usa <code>proc_scada</code> donde el runtime usa <code>scada_raw</code>/<code>scada_proc</code>. Alinear el bootstrap con los nombres reales evita confusión al desplegar en un lakehouse nuevo.
+</div>
+
+<div class="gap">
+  <b>6 · Secretos en el repositorio.</b> El <code>README</code> del notifier y su <code>config.yaml</code> contienen un <em>client secret</em> y una URL de webhook de Teams reales. <em>Acción:</em> rotar el secreto en Azure AD, regenerar el webhook y eliminarlos del control de versiones (usar variable de entorno / Key Vault).
+</div>
+
+<h3>Resumen de cambios v2 → v3</h3>
+<ul>
+  <li>Criterios <strong>C1–C8 → C1–C9</strong> con significados renumerados (C5/C6 = horas-día POA/GHI; C7 = setpoint; C8 = viento; C9 = PF).</li>
+  <li>Hoja de criterios <code>03_Criteria</code> → <code>03_Criteria_Config</code>; selección <code>06_Selected_Criteria</code>/<code>04_Selected_Criteria</code> → <code>04_Criteria_Selection</code>; límites en <code>06_Limits</code>.</li>
+  <li><code>guaranteed_epi</code> pasa de <code>01_Plants</code> a <code>03_Criteria_Config</code>; nuevo <code>energy_ref_sensor</code> (qué sensor es la energía "medida").</li>
+  <li>Albedo se calcula en <code>scada_proc</code> (<code>ALB_avg_filt</code>); desaparece la hoja de pares de albedo.</li>
+  <li>Criterios numéricos con semántica <code>-1</code>=OFF, <code>0</code>=no-nulo, <code>&gt;0</code>=umbral.</li>
+</ul>
+
+<footer class="doc">
+  Documentación del pipeline de Performance Ratio · Workspace Fabric <em>PVSyst&nbsp;-&nbsp;PR</em> · Enerlandgroup<br>
+  Notebooks: <code>scada_ingest, scada_proc, meteo_export, csv_ingest, pr_runner, calculate_pr, traceability_export, maint_cleanup, maint_verify, lakehouse_bootstrap</code> ·
+  PC: <code>pc_scripts/notifier</code> · Config: <code>plants_config.xlsx</code> · Reporte: <code>report_template.py</code>.<br>
+  Estado del código documentado: <strong>v3</strong> (criterios C1–C9). Generado el 2026-06-19.
+</footer>
+
+</div>
+</body>
+</html>

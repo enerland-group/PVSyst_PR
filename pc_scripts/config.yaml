@@ -1,0 +1,50 @@
+# Configuración de la automatización
+# Rutas para el equipo PVSYST1.
+
+paths:
+  # Carpeta LOCAL donde el script descarga (vía Graph) los meteos del SharePoint
+  # /inbox/. Los auto_*.bat también la leen aquí.
+  inbox: 'C:\Users\PVSYST1\PVSyst_CLI\inbox'
+
+  # Carpeta donde se acumulan los logs DIARIOS (log_alta_YYYYMMDD.txt,
+  # log_run_YYYYMMDD.txt). Al final del ciclo se suben a SharePoint /LOGS/ via Graph.
+  sharepoint_logs: 'C:\Users\PVSYST1\PVSyst_CLI\logs'
+
+  # Carpeta local con projects\<Planta>\results_out\<Planta>.csv y .pdf
+  proyectos: 'C:\Users\PVSYST1\PVSyst_CLI\projects'
+
+  # Carpeta donde los .bat dejan sus .log persistentes (auto_alta_log.txt,
+  # auto_run_log.txt). Los .bat escriben aquí (%OPS%\logs_bat\).
+  bat_logs: 'C:\Users\PVSYST1\PVSyst_CLI\logs_bat'
+
+  # Estado persistente (qué ficheros ya se han procesado)
+  state_file: 'C:\Users\PVSYST1\PVSyst_CLI\scripts\state.json'
+
+bats:
+  auto_alta: 'C:\Users\PVSYST1\PVSyst_CLI\scripts\auto_alta.bat'
+  auto_run:  'C:\Users\PVSYST1\PVSyst_CLI\scripts\auto_run.bat'
+  timeout_segundos: 3600
+
+teams:
+  # URL del webhook (Power Automate Workflow o Incoming Webhook clásico).
+  webhook_url: 'https://default943fa85b068d404abacb5f0baf8d31.a8.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/79367be3ad3840f29c7d98b777539ee4/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=vWNYSzq0oQz1T_AmWzcqWsk8T5N5sZMaUQuUV71r9sQ'
+
+sharepoint:
+  # URL https de la raíz de la biblioteca SharePoint (vista en navegador).
+  # Las carpetas <Planta>/ cuelgan de aquí.
+  base_url_raiz: 'C:\Users\PVSYST1\OneDrive - Enerland 2007 Fotovoltaica, S.L\Pvsyst1 - Documentos Sharepoint'
+
+# === Microsoft Graph (sustituye a OneDrive como mecanismo de entrega) ===
+graph:
+  client_id:            "58f369e5-0dfd-4435-802b-a90a6786bf22"
+  tenant_id:            "943fa85b-068d-404a-bacb-5f0baf8d31a8"
+  site_path:            "enerlandgroup.sharepoint.com:/sites/Pvsyst1"
+  drive_name:           "Documentos"
+
+  # Subcarpetas dentro de la biblioteca:
+  inbox_folder:         "inbox"           # entradas (lo que sube Fabric / lo que dejes manual)
+  results_root_folder:  ""                # vacío = resultados directamente en Documentos/<Planta>/<file>
+  logs_folder:          "LOGS"            # logs diarios acumulados
+
+  # Variable de entorno con el client_secret de la app PVSyst1_EPI:
+  secret_env_var:       "PVSYST1_EPI_SECRET"

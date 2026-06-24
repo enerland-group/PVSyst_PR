@@ -1,0 +1,11 @@
+# Claude Code IDE settings
+.claude/
+
+# Python cache
+__pycache__/
+*.py[co]
+*.pyo
+
+# Generated sample reports (build artifacts)
+preview_report.html
+_sample_report.html
