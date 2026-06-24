@@ -4,8 +4,13 @@
 # Python cache
 __pycache__/
 *.py[co]
-*.pyo
 
-# Generated sample reports (build artifacts)
+# Solo se trackean notebooks (_fab_export/ y notebooks/)
+config/
+pc_scripts/
+enerland.ico
+Documentacion_Pipeline_PR.html
+FRA.FV.MEM.GEN.MI.000*
 preview_report.html
 _sample_report.html
+plants_config.xlsx
