@@ -4,6 +4,7 @@
             {
                 "name": "scada_ingest",
                 "type": "TridentNotebook",
+                "state": "Active",
                 "dependsOn": [],
                 "policy": {
                     "timeout": "0.12:00:00",
@@ -36,97 +37,17 @@
                                 "type": "Expression"
                             },
                             "type": "string"
-                        }
-                    }
-                }
-            },
-            {
-                "name": "csv_ingest",
-                "type": "TridentNotebook",
-                "dependsOn": [],
-                "policy": {
-                    "timeout": "0.12:00:00",
-                    "retry": 0,
-                    "retryIntervalInSeconds": 30,
-                    "secureOutput": false,
-                    "secureInput": false
-                },
-                "typeProperties": {
-                    "notebookId": "be408ac7-9b5d-41e8-823a-c8c2d2d73821",
-                    "workspaceId": "0c4c3bbe-a6ae-404f-b1b7-7052bacfea11",
-                    "parameters": {
-                        "plant_codes": {
-                            "value": {
-                                "value": "@pipeline().parameters.plant_codes",
-                                "type": "Expression"
-                            },
-                            "type": "string"
                         },
-                        "files": {
+                        "incremental": {
                             "value": {
-                                "value": "@pipeline().parameters.files",
+                                "value": "@pipeline().parameters.incremental",
                                 "type": "Expression"
                             },
-                            "type": "string"
-                        }
-                    }
-                }
-            },
-            {
-                "name": "calculate_pr",
-                "type": "TridentNotebook",
-                "dependsOn": [
-                    {
-                        "activity": "csv_ingest",
-                        "dependencyConditions": [
-                            "Succeeded"
-                        ]
-                    },
-                    {
-                        "activity": "scada_proc",
-                        "dependencyConditions": [
-                            "Succeeded"
-                        ]
-                    }
-                ],
-                "policy": {
-                    "timeout": "0.12:00:00",
-                    "retry": 0,
-                    "retryIntervalInSeconds": 30,
-                    "secureOutput": false,
-                    "secureInput": false
-                },
-                "typeProperties": {
-                    "notebookId": "475f054b-8e38-42fc-a629-7b514e4549e6",
-                    "workspaceId": "0c4c3bbe-a6ae-404f-b1b7-7052bacfea11",
-                    "parameters": {
-                        "plant_codes": {
-                            "value": {
-                                "value": "@pipeline().parameters.plant_codes",
-                                "type": "Expression"
-                            },
-                            "type": "string"
+                            "type": "bool"
                         },
-                        "period_start": {
-                            "value": {
-                                "value": "@pipeline().parameters.period_start",
-                                "type": "Expression"
-                            },
-                            "type": "string"
-                        },
-                        "period_end": {
-                            "value": {
-                                "value": "@pipeline().parameters.period_end",
-                                "type": "Expression"
-                            },
-                            "type": "string"
-                        },
-                        "run_id": {
-                            "value": {
-                                "value": "@pipeline().RunId",
-                                "type": "Expression"
-                            },
-                            "type": "string"
+                        "overlap_hours": {
+                            "value": "6",
+                            "type": "int"
                         }
                     }
                 }
@@ -134,6 +55,7 @@
             {
                 "name": "scada_proc",
                 "type": "TridentNotebook",
+                "state": "Active",
                 "dependsOn": [
                     {
                         "activity": "scada_ingest",
@@ -173,6 +95,17 @@
                                 "type": "Expression"
                             },
                             "type": "string"
+                        },
+                        "incremental": {
+                            "value": {
+                                "value": "@pipeline().parameters.incremental",
+                                "type": "Expression"
+                            },
+                            "type": "bool"
+                        },
+                        "overlap_days": {
+                            "value": "1",
+                            "type": "int"
                         }
                     }
                 }
@@ -180,6 +113,7 @@
             {
                 "name": "meteo_export",
                 "type": "TridentNotebook",
+                "state": "Active",
                 "dependsOn": [
                     {
                         "activity": "scada_proc",
@@ -219,49 +153,10 @@
                                 "type": "Expression"
                             },
                             "type": "string"
-                        }
-                    }
-                }
-            },
-            {
-                "name": "traceability_export",
-                "type": "TridentNotebook",
-                "dependsOn": [
-                    {
-                        "activity": "calculate_pr",
-                        "dependencyConditions": [
-                            "Succeeded"
-                        ]
-                    }
-                ],
-                "policy": {
-                    "timeout": "0.12:00:00",
-                    "retry": 0,
-                    "retryIntervalInSeconds": 30,
-                    "secureOutput": false,
-                    "secureInput": false
-                },
-                "typeProperties": {
-                    "notebookId": "b986c037-eb7c-4256-8c30-07da0dc4433d",
-                    "workspaceId": "0c4c3bbe-a6ae-404f-b1b7-7052bacfea11",
-                    "parameters": {
-                        "plant_codes": {
-                            "value": {
-                                "value": "@pipeline().parameters.plant_codes",
-                                "type": "Expression"
-                            },
-                            "type": "string"
                         },
-                        "period_start": {
+                        "resolution": {
                             "value": {
-                                "value": "@pipeline().parameters.period_start",
-                                "type": "Expression"
-                            },
-                            "type": "string"
-                        },
-                        "period_end": {
-                            "value": {
-                                "value": "@pipeline().parameters.period_end",
+                                "value": "@pipeline().parameters.resolution",
                                 "type": "Expression"
                             },
                             "type": "string"
@@ -280,8 +175,13 @@
             "period_end": {
                 "type": "string"
             },
-            "files": {
-                "type": "string"
+            "resolution": {
+                "type": "string",
+                "defaultValue": "native"
+            },
+            "incremental": {
+                "type": "bool",
+                "defaultValue": false
             }
         }
     }

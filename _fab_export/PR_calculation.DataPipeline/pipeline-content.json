@@ -1,0 +1,277 @@
+{
+  "properties": {
+    "activities": [
+      {
+        "name": "csv_ingest",
+        "type": "TridentNotebook",
+        "dependsOn": [],
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureOutput": false,
+          "secureInput": false
+        },
+        "typeProperties": {
+          "notebookId": "be408ac7-9b5d-41e8-823a-c8c2d2d73821",
+          "workspaceId": "0c4c3bbe-a6ae-404f-b1b7-7052bacfea11",
+          "parameters": {
+            "plant_codes": {
+              "value": {
+                "value": "@pipeline().parameters.plant_codes",
+                "type": "Expression"
+              },
+              "type": "string"
+            },
+            "files": {
+              "value": {
+                "value": "@pipeline().parameters.files",
+                "type": "Expression"
+              },
+              "type": "string"
+            },
+            "force_reingest": {
+              "value": {
+                "value": "@pipeline().parameters.force_reingest",
+                "type": "Expression"
+              },
+              "type": "bool"
+            }
+          }
+        }
+      },
+      {
+        "name": "calculate_pr",
+        "type": "TridentNotebook",
+        "dependsOn": [
+          {
+            "activity": "csv_ingest",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ],
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureOutput": false,
+          "secureInput": false
+        },
+        "typeProperties": {
+          "notebookId": "475f054b-8e38-42fc-a629-7b514e4549e6",
+          "workspaceId": "0c4c3bbe-a6ae-404f-b1b7-7052bacfea11",
+          "parameters": {
+            "plant_codes": {
+              "value": {
+                "value": "@pipeline().parameters.plant_codes",
+                "type": "Expression"
+              },
+              "type": "string"
+            },
+            "period_start": {
+              "value": {
+                "value": "@pipeline().parameters.period_start",
+                "type": "Expression"
+              },
+              "type": "string"
+            },
+            "period_end": {
+              "value": {
+                "value": "@pipeline().parameters.period_end",
+                "type": "Expression"
+              },
+              "type": "string"
+            },
+            "run_id": {
+              "value": {
+                "value": "@pipeline().RunId",
+                "type": "Expression"
+              },
+              "type": "string"
+            }
+          }
+        }
+      },
+      {
+        "name": "if_trace",
+        "type": "IfCondition",
+        "dependsOn": [
+          {
+            "activity": "calculate_pr",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ],
+        "typeProperties": {
+          "expression": {
+            "value": "@pipeline().parameters.traceability_excel",
+            "type": "Expression"
+          },
+          "ifFalseActivities": [],
+          "ifTrueActivities": [
+            {
+              "name": "traceability_export",
+              "type": "TridentNotebook",
+              "dependsOn": [],
+              "policy": {
+                "timeout": "0.12:00:00",
+                "retry": 0,
+                "retryIntervalInSeconds": 30,
+                "secureOutput": false,
+                "secureInput": false
+              },
+              "typeProperties": {
+                "notebookId": "b986c037-eb7c-4256-8c30-07da0dc4433d",
+                "workspaceId": "0c4c3bbe-a6ae-404f-b1b7-7052bacfea11",
+                "parameters": {
+                  "plant_codes": {
+                    "value": {
+                      "value": "@pipeline().parameters.plant_codes",
+                      "type": "Expression"
+                    },
+                    "type": "string"
+                  },
+                  "period_start": {
+                    "value": {
+                      "value": "@pipeline().parameters.period_start",
+                      "type": "Expression"
+                    },
+                    "type": "string"
+                  },
+                  "period_end": {
+                    "value": {
+                      "value": "@pipeline().parameters.period_end",
+                      "type": "Expression"
+                    },
+                    "type": "string"
+                  },
+                  "last_months_only": {
+                    "value": {
+                      "value": "@pipeline().parameters.last_months_only",
+                      "type": "Expression"
+                    },
+                    "type": "bool"
+                  },
+                  "num_months": {
+                    "value": {
+                      "value": "@pipeline().parameters.num_months",
+                      "type": "Expression"
+                    },
+                    "type": "int"
+                  },
+                  "force_export": {
+                    "value": {
+                      "value": "@pipeline().parameters.force_export",
+                      "type": "Expression"
+                    },
+                    "type": "bool"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "name": "if_report",
+        "type": "IfCondition",
+        "dependsOn": [
+          {
+            "activity": "calculate_pr",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ],
+        "typeProperties": {
+          "expression": {
+            "value": "@pipeline().parameters.report_html",
+            "type": "Expression"
+          },
+          "ifFalseActivities": [],
+          "ifTrueActivities": [
+            {
+              "name": "report_generation",
+              "type": "TridentNotebook",
+              "dependsOn": [],
+              "policy": {
+                "timeout": "0.12:00:00",
+                "retry": 0,
+                "retryIntervalInSeconds": 30,
+                "secureOutput": false,
+                "secureInput": false
+              },
+              "typeProperties": {
+                "notebookId": "686bf96b-05cc-4bca-81aa-2d6cacb23447",
+                "workspaceId": "0c4c3bbe-a6ae-404f-b1b7-7052bacfea11",
+                "parameters": {
+                  "plant_codes": {
+                    "value": {
+                      "value": "@pipeline().parameters.plant_codes",
+                      "type": "Expression"
+                    },
+                    "type": "string"
+                  },
+                  "RUN_ID": {
+                    "value": {
+                      "value": "@pipeline().RunId",
+                      "type": "Expression"
+                    },
+                    "type": "string"
+                  },
+                  "force_export": {
+                    "value": {
+                      "value": "@pipeline().parameters.force_export",
+                      "type": "Expression"
+                    },
+                    "type": "bool"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "parameters": {
+      "period_start": {
+        "type": "string"
+      },
+      "period_end": {
+        "type": "string"
+      },
+      "num_months": {
+        "type": "int",
+        "defaultValue": 3
+      },
+      "last_months_only": {
+        "type": "bool",
+        "defaultValue": true
+      },
+      "force_reingest": {
+        "type": "bool",
+        "defaultValue": false
+      },
+      "files": {
+        "type": "string"
+      },
+      "plant_codes": {
+        "type": "string"
+      },
+      "traceability_excel": {
+        "type": "bool",
+        "defaultValue": true
+      },
+      "report_html": {
+        "type": "bool",
+        "defaultValue": false
+      },
+      "force_export": {
+        "type": "bool",
+        "defaultValue": false
+      }
+    }
+  }
+}
