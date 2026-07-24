@@ -1,0 +1,24 @@
+EVALUATE
+SELECTCOLUMNS (
+    FILTER ( pr_results, pr_results[plant_code] = "__PLANT__" ),
+    "ts", pr_results[ts],
+    "e_medida", pr_results[e_medida_kwh],
+    "e_garantizada", pr_results[e_garantizada_kwh],
+    "e_esperada", pr_results[e_esperada_kwh],
+    "poa_m", pr_results[poa_medida_wm2],
+    "poa_e", pr_results[poa_esperada_wm2],
+    "ghi_m", pr_results[ghi_medida_wm2],
+    "ghi_e", pr_results[ghi_esperada_wm2],
+    "valid", pr_results[valid],
+    "c1", pr_results[c1],
+    "c2", pr_results[c2],
+    "c3", pr_results[c3],
+    "c4", pr_results[c4],
+    "c5", pr_results[c5],
+    "c6", pr_results[c6],
+    "c7", pr_results[c7],
+    "c8", pr_results[c8],
+    "c9", pr_results[c9],
+    "active_criteria", pr_results[active_criteria]
+)
+ORDER BY [ts] ASC
