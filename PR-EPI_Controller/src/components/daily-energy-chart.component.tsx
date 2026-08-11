@@ -29,6 +29,13 @@ type View = "bars" | "cumulative" | "delta";
 type GranMode = "auto" | Gran;
 const GRAN_LABEL: Record<Gran, string> = { hour: "hora", day: "día", week: "semana" };
 
+// La vista por día es ilegible pasados los ~100 días: se muestran solo los N días MÁS
+// RECIENTES del periodo, con 100 como techo y como valor por defecto.
+// No se aplica a hora (ya limitada a spans <= 7 días) ni a semana (no satura).
+const DAY_WINDOWS = [10, 30, 100] as const;
+type DayWindow = (typeof DAY_WINDOWS)[number];
+const DAY_WINDOW_DEFAULT: DayWindow = 100;
+
 function Btn({ active, onClick, children }: { active: boolean; onClick: () => void; children: string }) {
     return (
         <button
@@ -46,6 +53,7 @@ export function ProductionChart({ intervals }: { intervals: PrInterval[] }) {
     const theme = useCssTheme();
     const [granMode, setGranMode] = useState<GranMode>("day");
     const [view, setView] = useState<View>("bars");
+    const [dayWindow, setDayWindow] = useState<DayWindow>(DAY_WINDOW_DEFAULT);
 
     // Si el periodo abarca más de 1 semana, se oculta la agrupación por hora
     // (demasiadas barras y poco útil a esa escala).
@@ -56,7 +64,14 @@ export function ProductionChart({ intervals }: { intervals: PrInterval[] }) {
 
     // 'auto' cae a semana si hay demasiadas barras, de modo que SIEMPRE quepan.
     const gran: Gran = effGranMode === "auto" ? pickGranularity(intervals) : effGranMode;
-    const buckets = useMemo(() => bucketize(intervals, gran), [intervals, gran]);
+    const allBuckets = useMemo(() => bucketize(intervals, gran), [intervals, gran]);
+    // Recorte a los últimos `dayWindow` días. Se aplica a las TRES vistas para que la
+    // acumulada y el Δ% cuadren con las barras que se están viendo.
+    const buckets = useMemo(
+        () => (gran === "day" ? allBuckets.slice(-dayWindow) : allBuckets),
+        [allBuckets, gran, dayWindow],
+    );
+    const dayTrimmed = buckets.length < allBuckets.length;
 
     const spec = useMemo<VisualizationSpec>(() => {
         // Todas las vistas se AJUSTAN al contenedor a ancho completo. `fit` nunca
@@ -139,8 +154,18 @@ export function ProductionChart({ intervals }: { intervals: PrInterval[] }) {
                     {allowHour && <Btn active={effGranMode === "hour"} onClick={() => setGranMode("hour")}>Hora</Btn>}
                     <Btn active={effGranMode === "day"} onClick={() => setGranMode("day")}>Día</Btn>
                     <Btn active={effGranMode === "week"} onClick={() => setGranMode("week")}>Semana</Btn>
-                    <span className="opacity-70">({GRAN_LABEL[gran]} · {buckets.length})</span>
+                    <span className="opacity-70">
+                        ({GRAN_LABEL[gran]} · {buckets.length}{dayTrimmed ? ` de ${allBuckets.length}` : ""})
+                    </span>
                 </span>
+                {gran === "day" && (
+                    <span className="flex items-center gap-1.5">
+                        Últimos días:
+                        {DAY_WINDOWS.map((n) => (
+                            <Btn key={n} active={dayWindow === n} onClick={() => setDayWindow(n)}>{String(n)}</Btn>
+                        ))}
+                    </span>
+                )}
                 <span className="flex items-center gap-1.5">
                     Vista:
                     <Btn active={view === "bars"} onClick={() => setView("bars")}>Barras</Btn>
