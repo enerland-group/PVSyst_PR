@@ -61,8 +61,15 @@ function App() {
     const ge = gEnd || range.max;
     const viewIntervals = useMemo(() => filterByDate(intervals, gs, ge), [intervals, gs, ge]);
 
-    // criterios/veredicto = run completo; gráficas/tabla/descargas = periodo seleccionado
+    // criterios/veredicto = run completo; KPIs/gráficas/tabla/descargas = periodo seleccionado
     const days = useMemo(() => dayStats(intervals), [intervals]);
+
+    // Resumen del periodo seleccionado: alimenta las tarjetas de KPIs
+    // (garantizada / medida / desviación / EPI / días válidos).
+    const viewSummary = useMemo(
+        () => summarizeIntervals(viewIntervals, { plantName, active }),
+        [viewIntervals, plantName, active],
+    );
 
     const anyError = MOCK ? undefined : plantsQ.error || intervalsQ.error;
     const loading = MOCK ? false : plantsQ.isLoading || intervalsQ.isLoading;
@@ -175,7 +182,7 @@ function App() {
                             </button>
                         )}
                         <span className="text-muted-foreground opacity-70">
-                            {viewIntervals.length.toLocaleString("es-ES")} intervalos · aplica a gráficas, tabla y descargas
+                            {viewIntervals.length.toLocaleString("es-ES")} intervalos · aplica a KPIs, gráficas, tabla y descargas
                         </span>
                     </div>
                 )}
@@ -199,7 +206,7 @@ function App() {
 
                 {summary && (
                     <>
-                        <VerdictCard s={summary} />
+                        <VerdictCard s={summary} view={viewSummary} />
 
                         <Section title="Producción — barras por hora / día / semana" sub="Periodo global · agregación automática">
                             <ProductionChart intervals={viewIntervals} />
