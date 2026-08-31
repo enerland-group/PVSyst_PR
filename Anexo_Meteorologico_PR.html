@@ -1,0 +1,988 @@
+<title>Anexo Meteorológico PR</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Serif:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<style>
+  /* ── Paleta única: papel técnico frío ──────────────────────────────────── */
+  :root {
+    --ground:        #F4F6F7;
+    --surface:       #FFFFFF;
+    --surface-2:     #EDF1F3;
+    --ink:           #101C24;
+    --ink-2:         #3D5361;
+    --ink-3:         #6C838F;
+    --rule:          #D2DBE0;
+    --rule-2:        #B4C2CA;
+    --accent:        #0E6B84;
+    --accent-2:      #0A5468;
+    --accent-wash:   #E2EEF2;
+    --amber:         #9C650D;
+    --amber-wash:    #F6EEDC;
+    --ok:            #2C6E52;
+    --bad:           #9C3B27;
+    --code-bg:       #EAF0F2;
+    --shadow:        0 1px 2px rgba(16, 28, 36, .06), 0 8px 24px -16px rgba(16, 28, 36, .28);
+  }
+  /* El documento se entrega al cliente y se imprime: fondo claro siempre, en
+     cualquier tema del visor. No hay paleta oscura a proposito; todos los
+     colores se pintan explicitamente para que la pagina no herede el fondo
+     del host. */
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: "IBM Plex Serif", Georgia, "Times New Roman", serif;
+    font-size: 16.5px;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 clamp(1rem, 4vw, 3rem) 6rem; }
+
+  /* ── Cabecera ──────────────────────────────────────────────────────────── */
+  .masthead { padding: clamp(2.5rem, 6vw, 4.5rem) 0 2rem; border-bottom: 2px solid var(--ink); }
+  .eyebrow {
+    font-family: "IBM Plex Sans Condensed", "Arial Narrow", sans-serif;
+    font-size: .8rem; font-weight: 600; letter-spacing: .16em; text-transform: uppercase;
+    color: var(--accent); margin: 0 0 1rem;
+  }
+  h1 {
+    font-family: "IBM Plex Sans Condensed", "Arial Narrow", sans-serif;
+    font-weight: 700; font-size: clamp(2.1rem, 6vw, 3.4rem); line-height: 1.04;
+    letter-spacing: -.015em; margin: 0 0 1rem; text-wrap: balance;
+  }
+  .standfirst { font-size: 1.15rem; color: var(--ink-2); max-width: 62ch; margin: 0 0 2rem; }
+  .meta {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1.25rem 2rem; padding-top: 1.5rem; border-top: 1px solid var(--rule);
+  }
+  .meta dt {
+    font-family: "IBM Plex Sans Condensed", "Arial Narrow", sans-serif;
+    font-size: .74rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--ink-3); margin-bottom: .2rem;
+  }
+  .meta dd { margin: 0; font-size: .95rem; color: var(--ink); }
+  .meta code { font-size: .88em; }
+
+  /* ── Secciones numeradas ───────────────────────────────────────────────── */
+  .sec { padding: 3.25rem 0 0; }
+  .sec + .sec { border-top: 1px solid var(--rule); margin-top: 3.25rem; }
+  .sec-head { display: grid; grid-template-columns: 3.25rem minmax(0, 1fr); gap: 0 1.25rem; align-items: start; }
+  .sec-num {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: .95rem; font-weight: 600; color: var(--accent);
+    padding-top: .55rem; font-variant-numeric: tabular-nums;
+  }
+  h2 {
+    font-family: "IBM Plex Sans Condensed", "Arial Narrow", sans-serif;
+    font-weight: 600; font-size: clamp(1.5rem, 3.4vw, 2rem); line-height: 1.14;
+    letter-spacing: -.01em; margin: 0; text-wrap: balance;
+  }
+  .sec-body { grid-column: 2; max-width: 70ch; }
+  .sec-body.wide { max-width: none; }
+  h3 {
+    font-family: "IBM Plex Sans Condensed", "Arial Narrow", sans-serif;
+    font-weight: 600; font-size: 1.2rem; letter-spacing: -.005em;
+    margin: 2.25rem 0 .6rem; color: var(--ink);
+  }
+  h4 {
+    font-family: "IBM Plex Sans Condensed", "Arial Narrow", sans-serif;
+    font-size: .8rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--ink-3); margin: 1.75rem 0 .5rem;
+  }
+  p { margin: 0 0 1rem; }
+  ul, ol { margin: 0 0 1rem; padding-left: 1.35rem; }
+  li { margin-bottom: .4rem; }
+  strong { font-weight: 600; }
+  a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  a:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
+
+  code, .mono { font-family: "IBM Plex Mono", ui-monospace, "Courier New", monospace; }
+  p code, li code, td code, dd code {
+    background: var(--code-bg); padding: .1em .34em; border-radius: 3px;
+    font-size: .86em; color: var(--ink);
+  }
+
+  /* ── Bloques de ecuación ───────────────────────────────────────────────── */
+  figure.eq { margin: 1.5rem 0; background: var(--surface); border: 1px solid var(--rule); border-left: 3px solid var(--accent); border-radius: 2px; box-shadow: var(--shadow); }
+  figure.eq > .eq-body { padding: 1.1rem 1.25rem; overflow-x: auto; }
+  figure.eq pre {
+    margin: 0; font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: .875rem; line-height: 1.75; white-space: pre; color: var(--ink);
+  }
+  figure.eq figcaption {
+    display: flex; gap: .75rem; align-items: baseline; flex-wrap: wrap;
+    padding: .55rem 1.25rem; border-top: 1px solid var(--rule);
+    background: var(--surface-2); font-size: .84rem; color: var(--ink-2);
+  }
+  figure.eq figcaption .tag {
+    font-family: "IBM Plex Mono", ui-monospace, monospace; font-weight: 600;
+    font-size: .78rem; color: var(--accent); white-space: nowrap;
+  }
+
+  /* ── Notas ─────────────────────────────────────────────────────────────── */
+  .note, .flag {
+    margin: 1.5rem 0; padding: .95rem 1.15rem; border-radius: 2px;
+    font-size: .95rem; border: 1px solid var(--rule); background: var(--surface);
+  }
+  .note { border-left: 3px solid var(--rule-2); color: var(--ink-2); }
+  .flag { border-left: 3px solid var(--amber); background: var(--amber-wash); color: var(--ink); }
+  .note p:last-child, .flag p:last-child, .note ul:last-child, .flag ul:last-child { margin-bottom: 0; }
+  .note-label, .flag-label {
+    display: block; font-family: "IBM Plex Sans Condensed", "Arial Narrow", sans-serif;
+    font-size: .74rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase;
+    margin-bottom: .35rem;
+  }
+  .note-label { color: var(--ink-3); }
+  .flag-label { color: var(--amber); }
+
+  /* ── Citas del contrato ────────────────────────────────────────────────── */
+  blockquote {
+    margin: 1.5rem 0; padding: .25rem 0 .25rem 1.25rem;
+    border-left: 2px solid var(--accent); color: var(--ink-2); font-style: italic;
+  }
+  blockquote p { margin-bottom: .4rem; }
+  blockquote cite {
+    display: block; font-style: normal; font-size: .82rem; color: var(--ink-3);
+    font-family: "IBM Plex Sans Condensed", "Arial Narrow", sans-serif; letter-spacing: .04em;
+  }
+
+  /* ── Tablas ────────────────────────────────────────────────────────────── */
+  .tbl-scroll { overflow-x: auto; margin: 1.5rem 0; border: 1px solid var(--rule); border-radius: 2px; background: var(--surface); box-shadow: var(--shadow); }
+  table { width: 100%; border-collapse: collapse; font-size: .9rem; min-width: 560px; }
+  caption {
+    text-align: left; padding: .8rem 1rem; background: var(--surface-2);
+    border-bottom: 1px solid var(--rule); font-size: .84rem; color: var(--ink-2);
+    font-family: "IBM Plex Sans Condensed", "Arial Narrow", sans-serif; letter-spacing: .02em;
+  }
+  th, td { padding: .6rem .85rem; text-align: left; vertical-align: top; border-bottom: 1px solid var(--rule); }
+  thead th {
+    font-family: "IBM Plex Sans Condensed", "Arial Narrow", sans-serif;
+    font-size: .76rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--ink-3); background: var(--surface);
+  }
+  tbody tr:last-child td { border-bottom: 0; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: .84rem; }
+  td.k { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: .82rem; white-space: nowrap; }
+
+  .pill {
+    display: inline-block; font-family: "IBM Plex Sans Condensed", "Arial Narrow", sans-serif;
+    font-size: .72rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+    padding: .12rem .45rem; border-radius: 2px; white-space: nowrap;
+  }
+  .pill.on  { color: var(--ok);  background: color-mix(in srgb, var(--ok) 12%, transparent);  }
+  .pill.off { color: var(--ink-3); background: var(--surface-2); }
+  .pill.warn{ color: var(--amber); background: var(--amber-wash); }
+
+  /* ── Cadena de proceso ─────────────────────────────────────────────────── */
+  .chain { margin: 1.75rem 0 .5rem; display: grid; gap: .5rem; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+  .chain-step {
+    position: relative; background: var(--surface); border: 1px solid var(--rule);
+    border-top: 2px solid var(--accent); border-radius: 2px; padding: .8rem .9rem;
+  }
+  .chain-step .n {
+    font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: .74rem;
+    font-weight: 600; color: var(--accent); display: block; margin-bottom: .3rem;
+  }
+  .chain-step .t {
+    font-family: "IBM Plex Sans Condensed", "Arial Narrow", sans-serif;
+    font-weight: 600; font-size: 1rem; line-height: 1.2; display: block; margin-bottom: .3rem;
+  }
+  .chain-step .d { font-size: .84rem; color: var(--ink-2); line-height: 1.45; }
+  .chain-step .src {
+    display: block; margin-top: .5rem; font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: .72rem; color: var(--ink-3);
+  }
+
+  /* ── Criterios ─────────────────────────────────────────────────────────── */
+  .crit { border: 1px solid var(--rule); border-radius: 2px; background: var(--surface); margin: 1.25rem 0; box-shadow: var(--shadow); }
+  .crit > header { display: flex; gap: .8rem; align-items: baseline; flex-wrap: wrap; padding: .85rem 1.1rem; border-bottom: 1px solid var(--rule); background: var(--surface-2); }
+  .crit > header .id {
+    font-family: "IBM Plex Mono", ui-monospace, monospace; font-weight: 600;
+    font-size: 1rem; color: var(--accent);
+  }
+  .crit > header .name { font-family: "IBM Plex Sans Condensed", "Arial Narrow", sans-serif; font-weight: 600; font-size: 1.05rem; }
+  .crit > .in { padding: 1rem 1.1rem; }
+  .crit > .in > *:last-child { margin-bottom: 0; }
+  .crit pre {
+    margin: .4rem 0 1rem; padding: .7rem .85rem; background: var(--code-bg); border-radius: 2px;
+    font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: .84rem; line-height: 1.7;
+    overflow-x: auto; white-space: pre;
+  }
+  .tradeoff { display: grid; gap: .9rem; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); margin-top: 1rem; }
+  .tradeoff > div { padding: .75rem .9rem; border-radius: 2px; background: var(--surface-2); font-size: .9rem; }
+  .tradeoff h5 {
+    margin: 0 0 .35rem; font-family: "IBM Plex Sans Condensed", "Arial Narrow", sans-serif;
+    font-size: .74rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase;
+  }
+  .tradeoff .keep h5 { color: var(--ok); }
+  .tradeoff .drop h5 { color: var(--bad); }
+  .tradeoff p { margin: 0; color: var(--ink-2); }
+
+  hr.rule { border: 0; border-top: 1px solid var(--rule); margin: 2.5rem 0; }
+
+  footer.doc { margin-top: 4rem; padding-top: 1.5rem; border-top: 2px solid var(--ink); font-size: .88rem; color: var(--ink-3); }
+  footer.doc p { margin-bottom: .5rem; }
+
+  @media (max-width: 640px) {
+    .sec-head { grid-template-columns: 1fr; gap: .25rem; }
+    .sec-num { padding-top: 0; }
+    .sec-body { grid-column: 1; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+</style>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <p class="eyebrow">Anexo técnico al PR Test Procedure</p>
+    <h1>Tratamiento de los datos meteorológicos y criterios de validez</h1>
+    <p class="standfirst">
+      Este documento describe, paso a paso y con las fórmulas exactas, cómo se validan, filtran
+      y promedian las medidas de la estación meteorológica antes de entrar en el cálculo del EPI,
+      y qué criterios de validez pueden aplicarse a cada intervalo. Está escrito para que
+      cualquiera de las partes pueda reproducir el resultado con una hoja de cálculo.
+    </p>
+    <dl class="meta">
+      <div>
+        <dt>Referencias normativas</dt>
+        <dd>IEC 61724-2 / IEC 61724-3<br>PR Test Procedure, §5.1, §5.2 y §7.1</dd>
+      </div>
+      <div>
+        <dt>Periodo de muestreo</dt>
+        <dd>15 min (nativo) · agregable a 1 h</dd>
+      </div>
+      <div>
+        <dt>Configuración</dt>
+        <dd><code>plants_config.xlsx</code>, hojas 01–09</dd>
+      </div>
+      <div>
+        <dt>Entregable de auditoría</dt>
+        <dd>Excel de trazabilidad por planta y periodo</dd>
+      </div>
+    </dl>
+  </header>
+
+  <!-- ══════════════════════════════════════════════════════════ 1 -->
+  <section class="sec">
+    <div class="sec-head">
+      <div class="sec-num">1</div>
+      <h2>La cadena de tratamiento, de un vistazo</h2>
+    </div>
+    <div class="sec-head">
+      <div class="sec-num" aria-hidden="true"></div>
+      <div class="sec-body wide">
+        <p>
+          Cada medida recorre siempre los mismos seis pasos, en este orden. El orden importa:
+          cada paso trabaja sobre lo que ha sobrevivido al anterior, y por eso un mismo dato puede
+          quedar descartado por un motivo u otro según qué filtros estén activos.
+        </p>
+        <div class="chain">
+          <div class="chain-step">
+            <span class="n">Paso 1</span>
+            <span class="t">Validación física</span>
+            <span class="d">Cada sensor por separado: rango, sensor congelado, salto imposible.</span>
+            <span class="src">06_Limits</span>
+          </div>
+          <div class="chain-step">
+            <span class="n">Paso 2</span>
+            <span class="t">Comparación entre sensores</span>
+            <span class="d">Los sensores de una misma familia se comparan entre sí y se descarta el que discrepa.</span>
+            <span class="src">05_Sensor_Outliers</span>
+          </div>
+          <div class="chain-step">
+            <span class="n">Paso 3</span>
+            <span class="t">Media filtrada</span>
+            <span class="d">Media de los sensores que han sobrevivido. Es el valor que se usa.</span>
+            <span class="src">—</span>
+          </div>
+          <div class="chain-step">
+            <span class="n">Paso 4</span>
+            <span class="t">Magnitudes derivadas</span>
+            <span class="d">Albedo y horas diarias por encima del umbral de irradiancia.</span>
+            <span class="src">09_Albedo_Mapping · 07</span>
+          </div>
+          <div class="chain-step">
+            <span class="n">Paso 5</span>
+            <span class="t">Criterios de validez</span>
+            <span class="d">Nueve criterios deciden si el intervalo entra en el cálculo.</span>
+            <span class="src">04_Criteria_Selection</span>
+          </div>
+          <div class="chain-step">
+            <span class="n">Paso 6</span>
+            <span class="t">Agregación y EPI</span>
+            <span class="d">Agregación temporal, energía medida frente a esperada y veredicto.</span>
+            <span class="src">03_EPI_Factors · 08</span>
+          </div>
+        </div>
+        <div class="note">
+          <span class="note-label">Principio de diseño</span>
+          <p>
+            Ningún paso inventa datos. Un dato descartado no se sustituye por una estimación:
+            se deja vacío y, si eso hace que el intervalo no cumpla los criterios, el intervalo
+            entero queda fuera del cálculo. Todos los descartes quedan registrados, medida a
+            medida, en el Excel de trazabilidad (§8).
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════ 2 -->
+  <section class="sec">
+    <div class="sec-head">
+      <div class="sec-num">2</div>
+      <h2>Datos de entrada</h2>
+    </div>
+    <div class="sec-head">
+      <div class="sec-num" aria-hidden="true"></div>
+      <div class="sec-body wide">
+        <p>
+          El SCADA entrega una fila cada 15 minutos. Cada sensor físico se renombra a un nombre
+          canónico mediante la hoja <code>02_Sensors_Mapping</code>, de forma que el cálculo es
+          idéntico en todas las plantas aunque el SCADA de cada una llame a las cosas de otra manera.
+          Los sensores de un mismo tipo forman una <strong>familia</strong>, y es dentro de la
+          familia donde se comparan entre sí.
+        </p>
+        <div class="tbl-scroll">
+          <table>
+            <caption>Familias de medida y señales de planta</caption>
+            <thead>
+              <tr><th>Familia</th><th>Magnitud</th><th>Unidad</th><th>Papel en el cálculo</th></tr>
+            </thead>
+            <tbody>
+              <tr><td class="k">POA_nn</td><td>Irradiancia en el plano del generador</td><td class="k">W/m²</td><td>Criterio c1 · referencia de irradiancia del test</td></tr>
+              <tr><td class="k">GHI_nn</td><td>Irradiancia global horizontal</td><td class="k">W/m²</td><td>Criterio c2 · entrada del modelo · denominador del albedo</td></tr>
+              <tr><td class="k">DHI_nn</td><td>Irradiancia difusa horizontal</td><td class="k">W/m²</td><td>Criterio c3 · entrada del modelo</td></tr>
+              <tr><td class="k">REF_nn</td><td>Irradiancia reflejada</td><td class="k">W/m²</td><td>Criterio c4 · numerador del albedo</td></tr>
+              <tr><td class="k">T_AMB</td><td>Temperatura ambiente</td><td class="k">°C</td><td>Entrada del modelo</td></tr>
+              <tr><td class="k">ALB_nn</td><td>Albedo (derivada, no se mide)</td><td class="k">—</td><td>Entrada del modelo</td></tr>
+              <tr><td class="k">E_GRID</td><td>Energía en el punto de medida</td><td class="k">kW</td><td>Energía medida</td></tr>
+              <tr><td class="k">SETPOINT</td><td>Límite de potencia del operador</td><td class="k">señal SCADA</td><td>Criterio c7</td></tr>
+              <tr><td class="k">WA</td><td>Alarma de viento (trackers en defensa)</td><td class="k">0/1</td><td>Criterio c8</td></tr>
+              <tr><td class="k">PF</td><td>Factor de potencia</td><td class="k">—</td><td>Criterio c9</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <blockquote>
+          <p>
+            “Irradiance will be measured as the average of all the horizontal pyranometers installed
+            at the Facility. All pyranometers shall comply with ISO-9060 <em>Secondary Standard</em>
+            certification.”
+          </p>
+          <cite>PR Test Procedure, §5.1.2</cite>
+        </blockquote>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════ 3 -->
+  <section class="sec">
+    <div class="sec-head">
+      <div class="sec-num">3</div>
+      <h2>Paso 1 — Validación física de cada sensor</h2>
+    </div>
+    <div class="sec-head">
+      <div class="sec-num" aria-hidden="true"></div>
+      <div class="sec-body wide">
+        <p>
+          Antes de comparar nada, cada sensor se juzga por sí solo contra los límites físicos de la
+          hoja <code>06_Limits</code>. Se detectan cuatro situaciones. Las dos primeras anulan la
+          medida; las dos últimas la <strong>marcan pero la conservan</strong>, porque son
+          diagnósticos de sensor y no necesariamente un dato falso.
+        </p>
+
+        <figure class="eq">
+          <div class="eq-body"><pre>missing        v  es NaN  (el sensor no ha reportado)          → valor anulado
+out_of_range   v &lt; rango_min   o   v &gt; rango_max               → valor anulado</pre></div>
+          <figcaption><span class="tag">Ec. 1</span><span>Dato ausente o físicamente imposible. Es el único caso en que se pierde la medida en este paso.</span></figcaption>
+        </figure>
+
+        <figure class="eq">
+          <div class="eq-body"><pre>dead     |v| &gt; min_significant   y   |v(t) − v(t−1)| &lt; dead_threshold   → marcado</pre></div>
+          <figcaption><span class="tag">Ec. 2</span><span>Sensor congelado: da un valor apreciable que no varía nada entre intervalos. <code>min_significant</code> = 5 W/m² en irradiancia, 1 °C en temperatura.</span></figcaption>
+        </figure>
+
+        <figure class="eq">
+          <div class="eq-body"><pre>abrupt   |v(t) − v(t−1)| &gt; abrupt_change                              → marcado</pre></div>
+          <figcaption><span class="tag">Ec. 3</span><span>Salto imposible entre dos intervalos consecutivos.</span></figcaption>
+        </figure>
+
+        <div class="tbl-scroll">
+          <table>
+            <caption>Límites físicos vigentes — hoja <code>06_Limits</code>, comunes a todas las plantas</caption>
+            <thead>
+              <tr><th>Parámetro</th><th class="num">rango_min</th><th class="num">rango_max</th><th class="num">abrupt_change</th><th class="num">dead_threshold</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>POA, GHI, DHI, REF (W/m²)</td><td class="num">−6</td><td class="num">1 500</td><td class="num">800</td><td class="num">0,0001</td></tr>
+              <tr><td>T_AMB (°C)</td><td class="num">−30</td><td class="num">50</td><td class="num">4</td><td class="num">0,0001</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="note">
+          <span class="note-label">Por qué −6 W/m² y no 0</span>
+          <p>
+            Un piranómetro bien calibrado da valores ligeramente negativos de noche
+            (offset térmico del sensor). Cortar en 0 marcaría como avería un comportamiento normal,
+            así que el límite inferior admite ese margen.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════ 4 -->
+  <section class="sec">
+    <div class="sec-head">
+      <div class="sec-num">4</div>
+      <h2>Paso 2 — Comparación entre sensores de la misma familia</h2>
+    </div>
+    <div class="sec-head">
+      <div class="sec-num" aria-hidden="true"></div>
+      <div class="sec-body wide">
+        <p>
+          Aquí es donde el procedimiento decide qué piranómetro está diciendo la verdad. La idea es
+          la del contrato: si un sensor discrepa de sus compañeros, el que sobra es él, no los demás.
+        </p>
+        <blockquote>
+          <p>
+            “The irradiance and ambient temperature used as input to the model should be the average
+            of the available measurements, <strong>except where one measurement is determined to be
+            erroneous</strong>, in which case the input to the model should be the average of the
+            remaining measurements.”
+          </p>
+          <cite>PR Test Procedure, §5.2</cite>
+        </blockquote>
+        <p>
+          Se aplican hasta tres métodos, <strong>en cascada</strong>: cada uno trabaja sobre los
+          sensores que el anterior ha dejado vivos. Los tres se activan o desactivan por familia y por
+          planta en la hoja <code>05_Sensor_Outliers</code>; un umbral a <code>0</code> significa
+          “método apagado”. Los tres exigen al menos <strong>3 sensores con lectura</strong> en el
+          intervalo: con dos no hay forma de saber cuál de los dos miente, así que no se toca nada.
+        </p>
+
+        <h3>Método 1 — Rango intercuartílico (Tukey)</h3>
+        <p>
+          En cada intervalo se calculan el primer y el tercer cuartil de las lecturas de la familia y
+          se descarta lo que caiga fuera de la valla. Es el método que el propio procedimiento nombra,
+          con <code>k = 1,5</code>.
+        </p>
+        <figure class="eq">
+          <div class="eq-body"><pre>IQR = Q3 − Q1
+
+descartar  v  si    v &lt; Q1 − k · IQR      (Ec. 3 del PR Test Procedure)
+                o   v &gt; Q3 + k · IQR      (Ec. 4 del PR Test Procedure)
+
+Q1, Q3 con interpolación lineal  ≡  CUARTIL.INC de Excel
+k desde 05_Sensor_Outliers, columna &lt;familia&gt;_iqr_k     (0 = método apagado)</pre></div>
+          <figcaption><span class="tag">Ec. 4</span><span>Salvaguardas: solo se aplica si el máximo de la familia ≥ 20 W/m² (de noche el IQR colapsa a cero y la valla se cerraría sobre un punto), si <code>IQR &gt; 0</code> y si hay ≥ 3 lecturas.</span></figcaption>
+        </figure>
+        <div class="flag">
+          <span class="flag-label">Límite conocido de este método</span>
+          <p>
+            Con exactamente <strong>3 sensores con lectura</strong> y <code>k ≥ 1</code>, la valla de
+            Tukey no puede excluir a nadie: es una propiedad algebraica del cuartil con tres puntos,
+            no un defecto de implementación. Con 4 o más sensores el método sí actúa (a partir de
+            desviaciones del orden del 5–10 %). Conviene tenerlo en cuenta en los intervalos en que
+            un sensor de la familia está caído.
+          </p>
+        </div>
+
+        <h3>Método 2 — Desviación relativa respecto a la media</h3>
+        <p>
+          Es el criterio del contrato: un sensor que se aparte más de un porcentaje dado de la media
+          de sus compañeros se descarta. Se puede aplicar en hasta <strong>tres rondas</strong>
+          sucesivas; cada ronda recalcula la media con los sensores que quedan, de forma que un
+          segundo sensor sospechoso se juzgue contra una referencia ya limpia.
+        </p>
+        <figure class="eq">
+          <div class="eq-body"><pre>avg    = media de los sensores ACTIVOS del intervalo
+adiff  = |v − avg|
+pdiff  = |adiff / avg|
+
+si avg = 0 :   descartar si adiff &gt; 0            (no hay porcentaje que medir)
+si avg ≠ 0 :   descartar si pdiff &gt; p  y  adiff &gt; 0
+
+p desde 05_Sensor_Outliers, columnas &lt;familia&gt;_max_dev_1..3   (0 = ronda saltada)</pre></div>
+          <figcaption><span class="tag">Ec. 5</span><span>Equivalente exacto, en notación de hoja de cálculo, de la fórmula acordada:</span></figcaption>
+        </figure>
+        <figure class="eq">
+          <div class="eq-body"><pre>=SI.ERROR(LET(par;[@[GHI 01 Filtered]];avg;[@[GHI_Average Filtered]];
+              adiff;ABS(par-avg);pdiff;ABS(adiff/avg);
+              SI(avg=0;SI(adiff&gt;0;"Discard";par);
+                       SI(Y(pdiff&gt;0,05;adiff&gt;0);"Discard";par)));"")</pre></div>
+          <figcaption><span class="tag">Ec. 5b</span><span>La celda devuelve la propia lectura si es válida, o <code>Discard</code> si no lo es. El cálculo automático reproduce esta fórmula sensor a sensor y ronda a ronda.</span></figcaption>
+        </figure>
+        <div class="flag">
+          <span class="flag-label">Efecto de usar la media como referencia</span>
+          <p>
+            La media incluye al sensor que se está juzgando, así que un sensor muy desviado arrastra
+            la referencia y puede hacer que los sensores buenos también parezcan desviados. Con
+            umbral <code>p</code> y <code>n</code> sensores activos, eso ocurre cuando la desviación
+            del sensor malo supera <code>p · n / (1 + p)</code>: con 4 sensores y un umbral del 5 %,
+            a partir de una desviación del orden del <strong>19 %</strong> caen los cuatro y el
+            intervalo se queda sin dato de esa familia. Es la razón por la que el procedimiento pone
+            el método 1 delante: el IQR es el que debe retirar antes los casos gruesos.
+          </p>
+        </div>
+
+        <h3>Método 3 — Desviación absoluta respecto a la media</h3>
+        <figure class="eq">
+          <div class="eq-body"><pre>descartar  v  si   |v − avg| &gt; max_diff        [W/m²]
+
+max_diff desde 05_Sensor_Outliers, columna &lt;familia&gt;_max_diff   (0 = apagado)</pre></div>
+          <figcaption><span class="tag">Ec. 6</span><span>Complementa al método 2 en irradiancias bajas, donde un 5 % son pocos W/m² y el criterio relativo se vuelve demasiado severo.</span></figcaption>
+        </figure>
+
+        <h3>Cuándo conviene activar cada método</h3>
+        <div class="tbl-scroll">
+          <table>
+            <caption>Los tres métodos son independientes y acumulables</caption>
+            <thead>
+              <tr><th>Método</th><th>Detecta bien</th><th>Ventaja de activarlo</th><th>Riesgo de activarlo</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="k">1 · IQR (k)</td>
+                <td>Valores disparatados y puntuales: sombra, pájaro, pico eléctrico.</td>
+                <td>Es el método que cita el procedimiento. Robusto: no se deja arrastrar por el propio valor extremo. Protege al método 2.</td>
+                <td>Con solo 3 lecturas no actúa. Con muchos sensores muy parecidos puede excluir alguno bueno en intervalos de mucha variabilidad.</td>
+              </tr>
+              <tr>
+                <td class="k">2 · % (rondas)</td>
+                <td>Desajustes sostenidos: suciedad, deriva de calibración, sombreado parcial.</td>
+                <td>Es el criterio literal del contrato (5 %) y el que de verdad limpia la media que entra al modelo.</td>
+                <td>Con un sensor muy desviado puede invalidar el intervalo completo (ver aviso anterior). Cada ronda extra es más severa.</td>
+              </tr>
+              <tr>
+                <td class="k">3 · W/m² absoluto</td>
+                <td>Discrepancias en irradiancia baja (amanecer, anochecer, nublado).</td>
+                <td>Evita que el criterio del 5 % descarte sensores por diferencias irrelevantes en valor absoluto.</td>
+                <td>Si se pone muy bajo, actúa en pleno día como un segundo criterio del 5 % encubierto.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════ 5 -->
+  <section class="sec">
+    <div class="sec-head">
+      <div class="sec-num">5</div>
+      <h2>Pasos 3 y 4 — Media filtrada y magnitudes derivadas</h2>
+    </div>
+    <div class="sec-head">
+      <div class="sec-num" aria-hidden="true"></div>
+      <div class="sec-body wide">
+        <p>
+          El valor que entra en el cálculo y en el modelo es siempre la <strong>media de los
+          sensores que han sobrevivido</strong> a los pasos 1 y 2, nunca la mediana ni una selección
+          manual.
+        </p>
+        <figure class="eq">
+          <div class="eq-body"><pre>&lt;FAMILIA&gt;_avg_filt = media aritmética de las lecturas activas de la familia
+                     (los descartes no cuentan: no valen 0, simplemente no están)
+
+si no queda ninguna lectura activa → &lt;FAMILIA&gt;_avg_filt queda vacío</pre></div>
+          <figcaption><span class="tag">Ec. 7</span><span>Es la magnitud que usan los criterios c1–c4 y la que se exporta al modelo.</span></figcaption>
+        </figure>
+
+        <h3>Albedo</h3>
+        <p>
+          El albedo no se mide: se calcula a partir de la pareja de piranómetros de cada albedómetro
+          (uno hacia arriba, otro hacia abajo) definida en <code>09_Albedo_Mapping</code>.
+        </p>
+        <figure class="eq">
+          <div class="eq-body"><pre>ALB_nn = REF_nn / &lt;directa&gt;_nn          (§5.1.1, Ec. 2 del PR Test Procedure)
+
+convenio:   directa o reflejada sin dato  → vacío
+            directa = 0  o  cociente &lt; 0  → 0
+
+ALB_avg_filt = media de los ALB_nn con  0 &lt; ALB_nn &lt; 1</pre></div>
+          <figcaption><span class="tag">Ec. 8</span><span>El filtro <code>0 &lt; ALB &lt; 1</code> descarta los cocientes sin sentido físico que aparecen al amanecer y al anochecer, cuando el denominador es casi cero.</span></figcaption>
+        </figure>
+
+        <h3>Horas diarias por encima del umbral de irradiancia</h3>
+        <p>
+          La hoja <code>07_Irrandiance_Thresholds</code> fija, mes a mes y por planta, la irradiancia
+          mínima que hace que un intervalo cuente como “de día útil”. De ahí sale el contador que
+          usan los criterios c5 y c6.
+        </p>
+        <figure class="eq">
+          <div class="eq-body"><pre>poa_above_thr(t) = 1  si  POA_avg_filt(t) ≥ umbral_POA(mes)   si no 0
+ghi_above_thr(t) = 1  si  GHI_avg_filt(t) ≥ umbral_GHI(mes)   si no 0
+
+horas_POA(día) = Σ poa_above_thr(t) · Δt          Δt = 0,25 h con muestreo de 15 min</pre></div>
+          <figcaption><span class="tag">Ec. 9</span><span>Un intervalo sin dato de irradiancia cuenta como 0, no como umbral incumplido: no inventa horas.</span></figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════ 6 -->
+  <section class="sec">
+    <div class="sec-head">
+      <div class="sec-num">6</div>
+      <h2>Paso 5 — Los nueve criterios de validez</h2>
+    </div>
+    <div class="sec-head">
+      <div class="sec-num" aria-hidden="true"></div>
+      <div class="sec-body wide">
+        <p>
+          Un intervalo entra en el cálculo del EPI solo si <strong>todos</strong> los criterios
+          activos se cumplen. Cada criterio se configura por planta en
+          <code>04_Criteria_Selection</code>, y el valor de la celda es a la vez el interruptor y el
+          umbral:
+        </p>
+        <div class="tbl-scroll">
+          <table>
+            <caption>Cómo se lee la celda de cada criterio</caption>
+            <thead><tr><th>Valor en la hoja</th><th>Significado</th></tr></thead>
+            <tbody>
+              <tr><td class="k">−1</td><td><span class="pill off">desactivado</span> El criterio no se evalúa y no puede invalidar ningún intervalo.</td></tr>
+              <tr><td class="k">0</td><td><span class="pill on">activo</span> Solo exige que la media filtrada exista (no esté vacía). Sin umbral numérico.</td></tr>
+              <tr><td class="k">&gt; 0</td><td><span class="pill on">activo</span> Exige que la media filtrada exista y alcance ese valor.</td></tr>
+              <tr><td class="k">TRUE / FALSE</td><td>Criterios c8 y c9, que no llevan umbral: solo se activan o se desactivan.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <figure class="eq">
+          <div class="eq-body"><pre>all_valid(t) = c1 · c2 · c3 · c4 · c5 · c6 · c7 · c8 · c9      (cada cn ∈ {0,1})
+
+Un criterio desactivado vale 1 (neutro): no resta.
+horas_válidas = Σ all_valid(t) · Δt</pre></div>
+          <figcaption><span class="tag">Ec. 10</span><span>Producto estricto: basta que un criterio activo falle para que el intervalo salga del cálculo.</span></figcaption>
+        </figure>
+
+        <hr class="rule">
+
+        <div class="crit">
+          <header><span class="id">c1 – c4</span><span class="name">Salud de la media filtrada: POA, GHI, DHI, REF</span></header>
+          <div class="in">
+            <p>Cuatro criterios idénticos, uno por familia de irradiancia.</p>
+<pre>umbral = 0 :   cn = 1  si  &lt;FAM&gt;_avg_filt  tiene valor
+umbral &gt; 0 :   cn = 1  si  &lt;FAM&gt;_avg_filt ≥ umbral        [W/m²]</pre>
+            <div class="tradeoff">
+              <div class="keep">
+                <h5>Ventaja de activarlo</h5>
+                <p>Con umbral <code>&gt; 0</code> es la forma de excluir la noche y las irradiancias
+                  muy bajas, donde el EPI es ruido: energías diminutas en el denominador producen
+                  porcentajes disparatados. Con umbral <code>0</code> garantiza que no se calcula
+                  nada sobre una familia que se ha quedado sin sensores.</p>
+              </div>
+              <div class="drop">
+                <h5>Ventaja de desactivarlo</h5>
+                <p>Imprescindible si la planta no mide esa magnitud (por ejemplo, sin difusómetros:
+                  c3 debe estar a <code>−1</code>). Si no, todos los intervalos serían inválidos.
+                  También se desactiva cuando esa familia no interviene en el criterio contractual.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="crit">
+          <header><span class="id">c5 · c6</span><span class="name">Horas diarias útiles de POA y de GHI</span></header>
+          <div class="in">
+<pre>c5 = 1  para TODOS los intervalos del día  si  horas_POA(día) ≥ umbral   [h]
+c6 = 1  para TODOS los intervalos del día  si  horas_GHI(día) ≥ umbral   [h]</pre>
+            <p>
+              Son criterios de <strong>día completo</strong>, no de intervalo: si el día no reúne
+              suficientes horas de irradiancia por encima del umbral mensual, el día entero queda
+              fuera.
+            </p>
+            <div class="tradeoff">
+              <div class="keep">
+                <h5>Ventaja de activarlo</h5>
+                <p>Descarta los días de meteorología pobre en bloque, que es lo que pide el
+                  procedimiento para que el test se haga en condiciones representativas, y evita que
+                  un día casi entero de nubes entre con cuatro intervalos sueltos y mucho ruido.</p>
+              </div>
+              <div class="drop">
+                <h5>Ventaja de desactivarlo</h5>
+                <p>Para seguimiento continuo del rendimiento (no para el test contractual), donde
+                  interesa medir todos los días disponibles y no solo los buenos. Desactivarlo
+                  aumenta mucho el número de intervalos válidos.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="crit">
+          <header><span class="id">c7</span><span class="name">El operador no está limitando la potencia</span></header>
+          <div class="in">
+<pre>c7 = 1  si  SETPOINT(t) ≥ umbral</pre>
+            <p>
+              Durante una limitación de potencia (<em>curtailment</em>) la planta produce menos de lo
+              que podría, y esa diferencia no es un defecto de rendimiento.
+            </p>
+            <div class="tradeoff">
+              <div class="keep">
+                <h5>Ventaja de activarlo</h5>
+                <p>Evita que una orden de limitación del operador o del gestor de red se lea como
+                  bajo rendimiento de la planta. Es el criterio que protege al contratista frente a
+                  causas ajenas a la instalación.</p>
+              </div>
+              <div class="drop">
+                <h5>Ventaja de desactivarlo</h5>
+                <p>Si la planta no publica la señal de setpoint, o si se quiere medir la energía
+                  realmente entregada incluyendo las limitaciones (perspectiva del propietario).</p>
+              </div>
+            </div>
+            <div class="flag">
+              <span class="flag-label">A confirmar entre las partes</span>
+              <p>
+                La cabecera de la hoja rotula este umbral en W, mientras que las señales de setpoint
+                del SCADA suelen venir en kW. Conviene fijar por escrito la unidad de la señal y el
+                umbral, porque un factor 1 000 aquí cambia el criterio de “nunca limita” a “siempre
+                limita”.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="crit">
+          <header><span class="id">c8</span><span class="name">Sin alarma de viento</span></header>
+          <div class="in">
+<pre>c8 = 1  si  WA(t) ≠ 1        (sin dato → se considera que no hay alarma)</pre>
+            <p>Con alarma de viento los seguidores van a posición de defensa y la irradiancia en el
+              plano deja de corresponder a la operación normal.</p>
+            <div class="tradeoff">
+              <div class="keep">
+                <h5>Ventaja de activarlo</h5>
+                <p>Excluye los periodos en que los trackers están aparcados por seguridad, en los que
+                  la comparación contra el modelo no es válida por definición.</p>
+              </div>
+              <div class="drop">
+                <h5>Ventaja de desactivarlo</h5>
+                <p>En plantas de estructura fija, donde la señal no significa nada, o cuando el SCADA
+                  no la proporciona de forma fiable.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="crit">
+          <header><span class="id">c9</span><span class="name">Factor de potencia en rango</span></header>
+          <div class="in">
+<pre>c9 = 1  si  0,98 ≤ PF(t) ≤ 1,00</pre>
+            <p>
+              Fuera de ese rango, parte de la capacidad del inversor está dedicada a reactiva por
+              consigna externa, y la energía activa medida no es comparable con la del modelo.
+            </p>
+            <div class="tradeoff">
+              <div class="keep">
+                <h5>Ventaja de activarlo</h5>
+                <p>Aísla el rendimiento del generador de las consignas de reactiva. Además, de noche
+                  el factor de potencia se vuelve negativo (consumo de auxiliares), así que este
+                  criterio limpia de paso la contaminación nocturna.</p>
+              </div>
+              <div class="drop">
+                <h5>Ventaja de desactivarlo</h5>
+                <p>Si el gestor de red impone reactiva de forma habitual, activarlo puede dejar sin
+                  intervalos válidos tardes completas. Antes de activarlo conviene revisar el perfil
+                  real de PF de la planta.</p>
+              </div>
+            </div>
+            <div class="note">
+              <span class="note-label">Nota</span>
+              <p>La banda 0,98–1,00 es un valor de referencia europeo fijado en el cálculo, no un
+                parámetro por planta. Los extremos entran (≥ y ≤).</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════ 7 -->
+  <section class="sec">
+    <div class="sec-head">
+      <div class="sec-num">7</div>
+      <h2>Paso 6 — Agregación temporal y cálculo del EPI</h2>
+    </div>
+    <div class="sec-head">
+      <div class="sec-num" aria-hidden="true"></div>
+      <div class="sec-body wide">
+        <h3>De 15 minutos a una hora</h3>
+        <p>
+          Cuando la comparación se hace en base horaria, la agregación sigue la regla del
+          procedimiento: promediar las magnitudes instantáneas y sumar la energía.
+        </p>
+        <blockquote>
+          <p>
+            “Hourly values of Ambient Temperature, DHI and GHI will be calculated as an average of
+            the values measured during the 15-min intervals within each hour. In the case of Measured
+            Energy, hourly values will be calculated as the sum of the values measured…”
+          </p>
+          <cite>PR Test Procedure, §5.1.2</cite>
+        </blockquote>
+        <figure class="eq">
+          <div class="eq-body"><pre>irradiancias, temperatura, albedo   →  media de los intervalos de la hora
+energía                             →  suma
+criterios c1..c9 y all_valid        →  MÍNIMO  (la hora es válida solo si
+                                               lo son sus cuatro cuartos)</pre></div>
+          <figcaption><span class="tag">Ec. 11</span><span>Agregar la validez con el mínimo es deliberadamente conservador: no se “rescata” una hora promediando un cuarto inválido con tres buenos.</span></figcaption>
+        </figure>
+
+        <h3>Alineación horaria de la referencia</h3>
+        <p>
+          La serie esperada procede de la simulación, cuyo reloj puede no coincidir con el del SCADA
+          (huso horario del fichero meteorológico, horario de verano). La hoja
+          <code>08_Time_Shifts</code> declara, por planta y por periodo, el desfase que se aplica
+          <strong>a la serie esperada</strong> para alinearla con la medida. La serie medida nunca se
+          desplaza.
+        </p>
+
+        <h3>Energías y veredicto</h3>
+        <figure class="eq">
+          <div class="eq-body"><pre>E_medida(t)      = P_medida(t) · Δt                       [kWh]
+E_esperada(t)    = E_Grid_simulada(t) · Δt                [kWh]
+E_garantizada(t) = E_esperada(t) · EPI_gar · f_degradación · f_disponibilidad
+
+sumas SOLO sobre los intervalos con all_valid = 1 :
+
+     EPI = Σ E_medida / Σ E_esperada                      (IEC 61724-3, Ec. 1)
+
+     Δ%  = (Σ E_medida − Σ E_garantizada) / Σ E_garantizada · 100
+
+     Resultado del test:  APTO  si  Σ E_medida ≥ Σ E_garantizada</pre></div>
+          <figcaption><span class="tag">Ec. 12</span><span>Los tres factores contractuales (<code>guaranteed_epi</code>, degradación y disponibilidad) se leen de <code>03_EPI_Factors</code> y admiten valores distintos por periodo.</span></figcaption>
+        </figure>
+        <div class="note">
+          <span class="note-label">Consecuencia que conviene tener presente</span>
+          <p>
+            Como el EPI es un cociente de sumas sobre los intervalos válidos, un día que queda
+            excluido por los criterios <strong>no penaliza ni beneficia</strong>: desaparece del
+            cálculo. Por eso el recuento de intervalos válidos, que aparece en el Excel de
+            trazabilidad, es parte del resultado y no un detalle interno: dos cálculos con el mismo
+            EPI y muy distinto número de intervalos válidos no son igual de sólidos.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════ 8 -->
+  <section class="sec">
+    <div class="sec-head">
+      <div class="sec-num">8</div>
+      <h2>Trazabilidad: cómo comprobar cualquier número</h2>
+    </div>
+    <div class="sec-head">
+      <div class="sec-num" aria-hidden="true"></div>
+      <div class="sec-body wide">
+        <p>
+          Cada cálculo genera un Excel por planta y periodo, con los datos crudos, los filtrados y
+          las fórmulas vivas, para que las partes puedan reproducir y auditar el resultado sin
+          acceso al sistema.
+        </p>
+        <div class="tbl-scroll">
+          <table>
+            <caption>Hojas del Excel de trazabilidad</caption>
+            <thead><tr><th>Hoja</th><th>Contenido</th></tr></thead>
+            <tbody>
+              <tr><td class="k">00_Summary</td><td>Resultado, EPI, energías y horas válidas.</td></tr>
+              <tr><td class="k">01_Contract_Config</td><td>Todos los parámetros aplicados: umbrales, factores y filtros. Es el origen de las referencias de las fórmulas.</td></tr>
+              <tr><td class="k">02_SCADA_Raw</td><td>Lecturas tal como llegan del SCADA.</td></tr>
+              <tr><td class="k">03_SCADA_Processed</td><td>Columnas filtradas, medias filtradas y criterios c1–c9, con fórmulas recalculables.</td></tr>
+              <tr><td class="k">04_PVsyst_Simulation</td><td>Serie esperada de la simulación.</td></tr>
+              <tr><td class="k">05 · 06 · 07</td><td>Comparación por intervalo, resumen diario y gráficas.</td></tr>
+              <tr><td class="k">08_Outliers</td><td>Solo los intervalos en los que se descartó algún sensor.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          En la hoja <code>03</code>, cada celda de una columna filtrada dice por qué falta el dato,
+          en lugar de quedarse en blanco:
+        </p>
+        <div class="tbl-scroll">
+          <table>
+            <caption>Marcas de estado por celda</caption>
+            <thead><tr><th>Marca</th><th>Significado</th></tr></thead>
+            <tbody>
+              <tr><td class="k">~</td><td>Descartado por el método 1 (IQR / Tukey).</td></tr>
+              <tr><td class="k">o</td><td>Descartado al comparar con la media de los demás sensores (métodos 2 y 3).</td></tr>
+              <tr><td class="k">=</td><td>Sensor congelado.</td></tr>
+              <tr><td class="k">!</td><td>Salto abrupto.</td></tr>
+              <tr><td class="k">NULL</td><td>El sensor no reportó nada en ese intervalo.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="note">
+          <span class="note-label">Conservación</span>
+          <p>
+            Se conservan los <strong>diez informes más recientes</strong> por planta; los anteriores
+            se retiran automáticamente para que la carpeta no crezca sin límite. Cada informe lleva
+            el periodo en el nombre y es autocontenido, así que un informe entregado sigue siendo
+            válido y verificable por sí mismo.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════ 9 -->
+  <section class="sec">
+    <div class="sec-head">
+      <div class="sec-num">9</div>
+      <h2>Anexo — Parámetros configurables</h2>
+    </div>
+    <div class="sec-head">
+      <div class="sec-num" aria-hidden="true"></div>
+      <div class="sec-body wide">
+        <p>
+          Todo lo que gobierna el cálculo está en un único fichero de configuración,
+          <code>plants_config.xlsx</code>. No hay umbrales escondidos en el código, con la única
+          excepción señalada en la nota final.
+        </p>
+        <div class="tbl-scroll">
+          <table>
+            <caption>Qué se configura y dónde</caption>
+            <thead><tr><th>Hoja</th><th>Gobierna</th><th>Efecto</th></tr></thead>
+            <tbody>
+              <tr><td class="k">01_Plants</td><td>Catálogo de plantas</td><td>Qué plantas se calculan, resolución de comparación y sensor de energía de referencia.</td></tr>
+              <tr><td class="k">02_Sensors_Mapping</td><td>Nombres de sensores</td><td>Traduce los nombres del SCADA a los canónicos. Determina qué sensores forman cada familia.</td></tr>
+              <tr><td class="k">03_EPI_Factors</td><td>EPI garantizado, degradación, disponibilidad</td><td>Define la energía garantizada y, por tanto, el APTO / NO APTO. Admite tramos por fechas.</td></tr>
+              <tr><td class="k">04_Criteria_Selection</td><td>Criterios c1–c9</td><td>Interruptor y umbral de cada criterio de validez (§6).</td></tr>
+              <tr><td class="k">05_Sensor_Outliers</td><td>Filtros entre sensores</td><td><code>iqr_k</code>, hasta tres umbrales porcentuales y el umbral absoluto, por familia (§4).</td></tr>
+              <tr><td class="k">06_Limits</td><td>Límites físicos</td><td>Rango, salto abrupto y umbral de sensor congelado (§3).</td></tr>
+              <tr><td class="k">07_Irrandiance_Thresholds</td><td>Umbral mensual de irradiancia</td><td>Define qué intervalo cuenta como hora útil para c5 y c6.</td></tr>
+              <tr><td class="k">08_Time_Shifts</td><td>Desfase de la serie esperada</td><td>Alinea la simulación con el SCADA, por planta y periodo (§7).</td></tr>
+              <tr><td class="k">09_Albedo_Mapping</td><td>Parejas de albedómetro</td><td>Qué sensor reflejado se divide entre qué sensor directo (§5).</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="flag">
+          <span class="flag-label">Valores fijados en el cálculo, no configurables por planta</span>
+          <ul>
+            <li>Banda del factor de potencia del criterio c9: <strong>0,98 – 1,00</strong>.</li>
+            <li>Mínimo de sensores para comparar entre sí: <strong>3</strong>.</li>
+            <li>Irradiancia mínima para aplicar el método IQR: <strong>20 W/m²</strong> (máximo de la familia).</li>
+            <li>Rango admisible de albedo: <strong>0 &lt; ALB &lt; 1</strong>.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="doc">
+    <p>
+      Los valores concretos de umbrales y factores vigentes para cada planta se recogen en la hoja
+      <code>01_Contract_Config</code> del Excel de trazabilidad que acompaña a cada cálculo, que es
+      la fuente autorizada: refleja exactamente la configuración con la que se obtuvo ese resultado.
+    </p>
+    <p>
+      Documento de metodología. Ante cualquier discrepancia con el PR Test Procedure firmado,
+      prevalece este último.
+    </p>
+  </footer>
+</div>
