@@ -14,3 +14,7 @@ FRA.FV.MEM.GEN.MI.000*
 preview_report.html
 _sample_report.html
 plants_config.xlsx
+
+# Datos sueltos de analisis puntual (barridos, comparativas): no son del proyecto
+comparison/
+shift_barrido_SAD.csv
