@@ -38,8 +38,15 @@ export async function downloadLatestTraceability(plant: string, onStatus?: (m: s
     );
     if (!files.length) throw new Error(`No hay Excel de trazabilidad para «${plant}» en OneLake.`);
 
-    // El nombre incluye la fecha (…_YYYYMMDD-YYYYMMDD.xlsx) → orden lexicográfico desc = más reciente.
-    files.sort((a, b) => b.name.localeCompare(a.name));
+    // Más reciente = último generado (lastModified). NO vale el orden por nombre: el nombre
+    // lleva el periodo (…_YYYYMMDD-YYYYMMDD.xlsx) y hay exportaciones puntuales de periodos
+    // antiguos hechas después, que ganarían lexicográficamente. Si falta la fecha, por nombre.
+    files.sort((a, b) => {
+        const ta = Date.parse(a.lastModified ?? '');
+        const tb = Date.parse(b.lastModified ?? '');
+        if (!Number.isNaN(ta) && !Number.isNaN(tb) && ta !== tb) return tb - ta;
+        return b.name.localeCompare(a.name);
+    });
     const latest = files[0];
     const fileName = latest.name.split("/").pop() ?? "traceability.xlsx";
 

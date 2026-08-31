@@ -52,11 +52,7 @@ async function getMsal(): Promise<PublicClientApplication> {
     return initPromise;
 }
 
-/**
- * Devuelve un bearer de Entra válido para OneLake (scope storage).
- * Silencioso salvo el primer login, que abre un popup una vez por navegador.
- */
-export async function getFabricToken(): Promise<string> {
+async function _acquire(): Promise<string> {
     // Atajo de dev: token manual pegado en .env (caduca ~1h). Útil sin app registration.
     const manual = import.meta.env.VITE_FABRIC_TOKEN;
     if (manual) return manual;
@@ -81,5 +77,35 @@ export async function getFabricToken(): Promise<string> {
             return r.accessToken;
         }
         throw err;
+    }
+}
+
+/** Traduce los errores de Entra que dependen de la configuración de la App Registration. */
+function _friendly(err: unknown): Error {
+    const msg = err instanceof Error ? err.message : String(err);
+    if (/AADSTS50011|redirect_uri/i.test(msg)) {
+        return new Error(
+            `Entra rechaza el origen «${window.location.origin}»: hay que añadirlo como redirect URI de ` +
+            `plataforma SPA en la App Registration ${import.meta.env.VITE_ENTRA_CLIENT_ID ?? '(sin VITE_ENTRA_CLIENT_ID)'}. ` +
+            `Detalle: ${msg}`,
+        );
+    }
+    if (/AADSTS65001|consent/i.test(msg)) {
+        return new Error(
+            `Falta el consentimiento de Azure Storage / user_impersonation para tu usuario. Detalle: ${msg}`,
+        );
+    }
+    return err instanceof Error ? err : new Error(msg);
+}
+
+/**
+ * Devuelve un bearer de Entra válido para OneLake (scope storage).
+ * Silencioso salvo el primer login, que abre un popup una vez por navegador.
+ */
+export async function getFabricToken(): Promise<string> {
+    try {
+        return await _acquire();
+    } catch (err) {
+        throw _friendly(err);
     }
 }
