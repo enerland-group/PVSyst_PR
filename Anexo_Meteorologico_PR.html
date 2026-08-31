@@ -392,9 +392,10 @@
       <div class="sec-body wide">
         <p>
           Antes de comparar nada, cada sensor se juzga por sí solo contra los límites físicos de la
-          hoja <code>06_Limits</code>. Se detectan cuatro situaciones. Las dos primeras anulan la
-          medida; las dos últimas la <strong>marcan pero la conservan</strong>, porque son
-          diagnósticos de sensor y no necesariamente un dato falso.
+          hoja <code>06_Limits</code>. Se detectan cuatro situaciones. Las tres primeras
+          <strong>anulan la medida</strong>: sin lectura, lectura físicamente imposible o sensor
+          congelado. La cuarta la <strong>marca pero la conserva</strong>, porque un salto brusco
+          puede ser real y de eso ya juzga la comparación entre sensores.
         </p>
 
         <figure class="eq">
@@ -404,8 +405,10 @@ out_of_range   v &lt; rango_min   o   v &gt; rango_max               → valor a
         </figure>
 
         <figure class="eq">
-          <div class="eq-body"><pre>dead     |v| &gt; min_significant   y   |v(t) − v(t−1)| &lt; dead_threshold   → marcado</pre></div>
-          <figcaption><span class="tag">Ec. 2</span><span>Sensor congelado: da un valor apreciable que no varía nada entre intervalos. <code>min_significant</code> = 5 W/m² en irradiancia, 1 °C en temperatura.</span></figcaption>
+          <div class="eq-body"><pre>dead   racha de &gt;= dead_min_run lecturas consecutivas con
+       |v(t) − v(t−1)| &lt; dead_threshold  y  |v| &gt; min_significant     → valor anulado
+       (se marca la racha COMPLETA, no solo las filas repetidas)</pre></div>
+          <figcaption><span class="tag">Ec. 2</span><span>Sensor congelado: da un valor apreciable que no varía entre intervalos. Se juzga <strong>por tramos</strong>, no fila a fila, para que un sensor clavado que de vez en cuando mueve el último decimal no entre y salga del cálculo. <code>dead_min_run</code> = 3 lecturas en irradiancia (45 min) y 12 en temperatura (3 h); <code>min_significant</code> = 5 W/m² y 1 °C. Un sensor congelado <strong>no se promedia</strong> con los que sí funcionan.</span></figcaption>
         </figure>
 
         <figure class="eq">
@@ -464,8 +467,13 @@ out_of_range   v &lt; rango_min   o   v &gt; rango_max               → valor a
           Se aplican hasta tres métodos, <strong>en cascada</strong>: cada uno trabaja sobre los
           sensores que el anterior ha dejado vivos. Los tres se activan o desactivan por familia y por
           planta en la hoja <code>05_Sensor_Outliers</code>; un umbral a <code>0</code> significa
-          “método apagado”. Los tres exigen al menos <strong>3 sensores con lectura</strong> en el
-          intervalo: con dos no hay forma de saber cuál de los dos miente, así que no se toca nada.
+          “método apagado”. El método 1 (IQR) necesita al menos <strong>3 lecturas</strong>, porque
+          los cuartiles de dos puntos no significan nada. Los métodos 2 y 3 actúan desde
+          <strong>2 lecturas</strong>: con solo dos sensores ambos se desvían lo mismo de su media,
+          así que <strong>si discrepan más del umbral se descartan los dos</strong> y el intervalo se
+          queda sin esa familia. Es deliberado: con dos medidas que no se ponen de acuerdo no hay
+          forma de saber cuál es la buena, y el procedimiento prefiere no usar el dato antes que
+          elegir a ciegas.
         </p>
 
         <h3>Método 1 — Rango intercuartílico (Tukey)</h3>
@@ -954,7 +962,7 @@ sumas SOLO sobre los intervalos con all_valid = 1 :
               <tr><td class="k">03_EPI_Factors</td><td>EPI garantizado, degradación, disponibilidad</td><td>Define la energía garantizada y, por tanto, el APTO / NO APTO. Admite tramos por fechas.</td></tr>
               <tr><td class="k">04_Criteria_Selection</td><td>Criterios c1–c9</td><td>Interruptor y umbral de cada criterio de validez (§6).</td></tr>
               <tr><td class="k">05_Sensor_Outliers</td><td>Filtros entre sensores</td><td><code>iqr_k</code>, hasta tres umbrales porcentuales y el umbral absoluto, por familia (§4).</td></tr>
-              <tr><td class="k">06_Limits</td><td>Límites físicos</td><td>Rango, salto abrupto y umbral de sensor congelado (§3).</td></tr>
+              <tr><td class="k">06_Limits</td><td>Límites físicos</td><td>Rango, salto abrupto, umbral y racha de sensor congelado (§3).</td></tr>
               <tr><td class="k">07_Irrandiance_Thresholds</td><td>Umbral mensual de irradiancia</td><td>Define qué intervalo cuenta como hora útil para c5 y c6.</td></tr>
               <tr><td class="k">08_Time_Shifts</td><td>Desfase de la serie esperada</td><td>Alinea la simulación con el SCADA, por planta y periodo (§7).</td></tr>
               <tr><td class="k">09_Albedo_Mapping</td><td>Parejas de albedómetro</td><td>Qué sensor reflejado se divide entre qué sensor directo (§5).</td></tr>
@@ -965,7 +973,11 @@ sumas SOLO sobre los intervalos con all_valid = 1 :
           <span class="flag-label">Valores fijados en el cálculo, no configurables por planta</span>
           <ul>
             <li>Banda del factor de potencia del criterio c9: <strong>0,98 – 1,00</strong>.</li>
-            <li>Mínimo de sensores para comparar entre sí: <strong>3</strong>.</li>
+            <li>Mínimo de lecturas para comparar: <strong>3</strong> en el método IQR,
+              <strong>2</strong> en los métodos de desviación.</li>
+            <li>Racha para dar un sensor por congelado: <strong>3</strong> lecturas en irradiancia,
+              <strong>12</strong> en temperatura (ajustable por familia con la columna
+              <code>dead_min_run</code> de <code>06_Limits</code>).</li>
             <li>Irradiancia mínima para aplicar el método IQR: <strong>20 W/m²</strong> (máximo de la familia).</li>
             <li>Rango admisible de albedo: <strong>0 &lt; ALB &lt; 1</strong>.</li>
           </ul>
