@@ -847,7 +847,10 @@ criterios c1..c9 y all_valid        →  MÍNIMO  (la hora es válida solo si
           (huso horario del fichero meteorológico, horario de verano). La hoja
           <code>08_Time_Shifts</code> declara, por planta y por periodo, el desfase que se aplica
           <strong>a la serie esperada</strong> para alinearla con la medida. La serie medida nunca se
-          desplaza.
+          desplaza. El desfase se redondea a un número entero de intervalos del test (a la hora, en
+          la comparación horaria): así los intervalos de la serie medida siguen siendo las horas en
+          punto —la hora de las 8 agrega 08:00, 08:15, 08:30 y 08:45— y el desfase solo decide contra
+          qué hora de la simulación se compara cada una.
         </p>
 
         <h3>Energías y veredicto</h3>
