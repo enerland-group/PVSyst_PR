@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Alta de plantas y configuracion - PR PVsyst</title>
+<style>
+  :root {
+    --bg:#fafbfc; --ink:#1d2433; --muted:#5b6577; --line:#dde2eb;
+    --accent:#0a6e3a; --accent-soft:#e8f3ec; --code:#f4f6f9;
+    --warn:#b6720b; --warn-soft:#fff5e1;
+    --err:#a83232; --err-soft:#fce8e8;
+    --part:#1b3d6e; --part-soft:#eef1f8;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Segoe UI",system-ui,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.55}
+  .wrap{max-width:1080px;margin:0 auto;padding:48px 56px}
+  header.doc{border-bottom:3px solid var(--part);padding-bottom:24px;margin-bottom:36px}
+  header.doc .eyebrow{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600}
+  header.doc h1{margin:6px 0 6px;font-size:30px;letter-spacing:-.01em;color:var(--part)}
+  header.doc .meta{color:var(--muted);font-size:13px}
+
+  /* Portada de etapa — "hoja con el título de la etapa" */
+  .cover{page-break-before:always;break-before:page;min-height:80vh;display:flex;flex-direction:column;justify-content:center;
+         border-top:1px solid var(--line);margin-top:40px}
+  .cover .stage-kicker{font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);font-weight:700}
+  .cover .stage-num{font-size:74px;font-weight:800;color:var(--part-soft);line-height:.9;margin:4px 0 6px;-webkit-text-stroke:1px var(--part)}
+  .cover .stage-title{font-size:34px;font-weight:700;color:var(--part);letter-spacing:-.01em;margin:0 0 14px;max-width:760px}
+  .cover .stage-desc{font-size:16px;color:var(--muted);max-width:680px;line-height:1.5}
+  .cover .stage-artifacts{margin-top:28px;display:flex;gap:10px;flex-wrap:wrap}
+  .cover .stage-artifacts .chip{font-family:Consolas,monospace;font-size:12px;background:white;border:1px solid var(--line);border-radius:20px;padding:5px 13px;color:var(--ink)}
+  .cover .stage-artifacts .chip b{color:var(--part)}
+  .cover .stage-flow{margin-top:18px;font-family:Consolas,monospace;font-size:12.5px;color:var(--accent)}
+
+  h2{margin:40px 0 10px;font-size:21px;border-bottom:1px solid var(--line);padding-bottom:6px;scroll-margin-top:20px;color:var(--part)}
+  h3{margin:28px 0 6px;font-size:15.5px;color:var(--accent)}
+  h4{margin:18px 0 4px;font-size:12.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+  p{margin:6px 0 10px}
+  ul,ol{margin:6px 0 12px 22px}
+  li{margin:3px 0}
+  code,pre{font-family:"Cascadia Mono",Consolas,Menlo,monospace;font-size:12.5px}
+  code{background:var(--code);padding:1px 5px;border-radius:3px}
+  pre{background:var(--code);padding:14px 16px;border-radius:6px;overflow-x:auto;border:1px solid var(--line);white-space:pre}
+  table{width:100%;border-collapse:collapse;margin:10px 0 16px;font-size:12.8px}
+  th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
+  th{background:#f1f4f8;font-weight:600}
+  .table-scroll{overflow-x:auto}
+
+  .pipeline{display:flex;gap:10px;align-items:stretch;margin:18px 0 8px;flex-wrap:wrap}
+  .pipeline .step{flex:1;min-width:200px;background:white;border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:6px;padding:12px 14px}
+  .pipeline .step.pc{border-left-color:var(--warn)}
+  .pipeline .step .h{font-weight:600;font-size:13px;margin-bottom:4px}
+  .pipeline .step .s{color:var(--muted);font-size:12px;line-height:1.4}
+  .pipeline .arrow{display:flex;align-items:center;justify-content:center;color:var(--muted);font-weight:700;font-size:22px;min-width:18px}
+
+  .crit{background:white;border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:6px;padding:14px 18px;margin:14px 0}
+  .crit .title{font-weight:600;font-size:14px;margin-bottom:6px}
+  .crit .label{display:inline-block;padding:1px 7px;border-radius:3px;background:var(--accent-soft);color:var(--accent);font-size:11px;font-weight:700;letter-spacing:.04em;margin-right:8px;vertical-align:1px}
+  .note{background:var(--warn-soft);border-left:4px solid var(--warn);border-radius:6px;padding:10px 14px;color:#3a2c0a;margin:12px 0}
+  .gap{background:var(--err-soft);border-left:4px solid var(--err);border-radius:6px;padding:10px 14px;color:#451414;margin:12px 0}
+  .gap b{color:var(--err)}
+
+  .example{background:white;border:1px solid var(--line);border-radius:8px;padding:18px 22px;margin:18px 0}
+  .example header.ex{display:flex;gap:14px;align-items:baseline;border-bottom:1px solid var(--line);padding-bottom:8px;margin-bottom:12px}
+  .example header.ex .badge{display:inline-block;background:var(--accent);color:white;font-size:11px;font-weight:700;padding:3px 10px;border-radius:3px;letter-spacing:.05em}
+  .example header.ex .badge.fail{background:var(--err)}
+  .example header.ex .when{color:var(--muted);font-size:13px;font-family:Consolas,monospace}
+  .example header.ex .title{font-weight:600;flex:1}
+  .calc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px;margin:8px 0 12px}
+  .calc-grid .kv{background:var(--code);padding:6px 10px;border-radius:4px;font-size:12.5px}
+  .calc-grid .kv .k{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+  .calc-grid .kv .v{font-family:Consolas,monospace}
+  .verdict{display:inline-block;padding:3px 10px;border-radius:3px;font-weight:700;font-size:12px;letter-spacing:.04em}
+  .verdict.ok{background:var(--accent-soft);color:var(--accent)}
+  .verdict.no{background:var(--err-soft);color:var(--err)}
+  .small{color:var(--muted);font-size:12.5px}
+
+  .toc{background:white;border:1px solid var(--line);border-radius:6px;padding:18px 24px;margin:0 0 24px}
+  .toc h3{margin:0 0 10px;color:var(--ink);font-size:13px;text-transform:uppercase;letter-spacing:.05em}
+  .toc ol{margin:0;padding-left:22px;columns:2;column-gap:40px}
+  .toc li{margin:4px 0;break-inside:avoid}
+  .toc a{color:var(--ink);text-decoration:none;border-bottom:1px dotted var(--line)}
+  .toc a:hover{border-bottom-color:var(--accent);color:var(--accent)}
+  .toc .num{display:inline-block;width:26px;color:var(--part);font-weight:700;font-family:Consolas,monospace}
+
+  .kpi-row{display:flex;gap:12px;flex-wrap:wrap;margin:14px 0}
+  .kpi{flex:1;min-width:150px;background:white;border:1px solid var(--line);border-radius:6px;padding:12px 14px}
+  .kpi .k{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+  .kpi .v{font-size:20px;font-weight:700;color:var(--part);margin-top:3px}
+
+  footer.doc{margin-top:60px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);font-size:12px}
+  @media print{
+    body{background:white;font-size:11.5px}
+    .wrap{max-width:none;padding:0 14mm}
+    h2{break-after:avoid}
+    .crit,.example,.pipeline .step,table{break-inside:avoid}
+    .toc ol{columns:1}
+    .cover{min-height:88vh}
+  }
+</style>
+
+</head>
+<body>
+<div class="wrap">
+
+<header class="doc">
+  <div class="eyebrow">Performance Ratio · PVsyst · Enerlandgroup</div>
+  <h1>Alta de plantas y configuración</h1>
+  <div class="meta">
+    Qué ficheros hacen falta para dar de alta una planta y cómo se rellena <code>plants_config.xlsx</code>.<br>
+    PC de simulación <strong>PVSYST1</strong> · Workspace Fabric <strong>PVSyst&nbsp;-&nbsp;PR</strong> · Lakehouse <code>pvsyst</code>.<br>
+    <span class="small">Manual de uso. El detalle de qué hace el pipeline con esos datos está en
+    <em>Documentación del pipeline de Performance Ratio</em>.</span>
+  </div>
+</header>
+
+<h2 id="dos-sitios">1 · Una planta vive en dos sitios</h2>
+
+<div class="pipeline">
+  <div class="step pc">
+    <div class="h">PC de PVsyst (PVSYST1)</div>
+    <div class="s">El proyecto de simulación: <code>.PRJ</code>, sitio, variante, formato de meteo, sombras.
+      Es lo que produce la <strong>energía esperada</strong>.</div>
+  </div>
+  <div class="arrow">+</div>
+  <div class="step">
+    <div class="h">Fabric · lakehouse <code>pvsyst</code></div>
+    <div class="s">Los datos del SCADA (<code>gold.&lt;tabla&gt;</code>) y la configuración del cálculo
+      (<code>plants_config.xlsx</code>). Es lo que produce la <strong>energía medida</strong> y los criterios.</div>
+  </div>
+  <div class="arrow">=</div>
+  <div class="step">
+    <div class="h">PR</div>
+    <div class="s">Si falta cualquiera de los dos lados, la planta no calcula. No hay medias tintas.</div>
+  </div>
+</div>
+
+<h2 id="alta-pvsyst">2 · Alta en el PC de PVsyst</h2>
+
+<p>Todo se hace dejando ficheros en el <strong>inbox</strong> y ejecutando <code>auto_alta.bat</code>. El .bat decide
+   solo qué está pasando según lo que encuentra:</p>
+<ul>
+  <li>Hay un <code>.PRJ</code> → modo <strong>ALTA</strong> (planta nueva).</li>
+  <li>Solo hay ficheros <code>.V??</code> → modo <strong>VARIANTE</strong> (cambiar la variante que se simula).</li>
+  <li>Hay <code>.csv</code> → eso no es un alta; de los CSV se encarga <code>auto_run.bat</code> en cada corrida diaria.</li>
+</ul>
+<p class="small">Solo se admite <strong>un <code>.PRJ</code> y una planta por ejecución</strong>: si aparecen variantes de
+   plantas distintas, aborta.</p>
+
+<h3>2.1 · Ficheros que se dejan en el inbox</h3>
+<table>
+  <tr><th style="width:170px">Fichero</th><th style="width:110px">¿Obligatorio?</th><th style="width:230px">Dónde acaba</th><th>Para qué</th></tr>
+  <tr><td><code>&lt;PLANTA&gt;.PRJ</code></td><td><strong>Sí</strong></td><td><code>PVsyst8.1_Data\Projects</code></td>
+      <td>El proyecto. <strong>Su nombre fija el código de la planta</strong> para todo lo demás.</td></tr>
+  <tr><td><code>&lt;PLANTA&gt;.SIT</code></td><td><strong>Sí</strong></td><td><code>\Sites</code></td>
+      <td>Emplazamiento: coordenadas y <code>TimeZone</code>.</td></tr>
+  <tr><td><code>&lt;PLANTA&gt;.MEF</code></td><td><strong>Sí</strong></td><td><code>\Meteo</code></td>
+      <td>Formato de importación con el que el CLI convierte el CSV de meteo en <code>.MET</code>.</td></tr>
+  <tr><td><code>&lt;PLANTA&gt;.V??</code></td><td>Muy recomendable</td><td><code>\Projects</code></td>
+      <td>La variante a simular. Su extensión se escribe en <code>variant.txt</code>; si no viene ninguna, se asume
+          <code>VC0</code>.</td></tr>
+  <tr><td><code>&lt;PLANTA&gt;.SFI</code></td><td>Opcional</td><td><code>\Models</code></td>
+      <td>Sombreados. Si no está, se simula sin <code>-isf</code> y no falla.</td></tr>
+  <tr><td><code>*.PAN</code> / <code>*.OND</code></td><td>Opcional</td><td><code>ComposPV\PVmodules</code> / <code>\Inverters</code></td>
+      <td>Módulo e inversor. Si faltan, el alta termina bien pero deja un AVISO en el log.</td></tr>
+  <tr><td><code>*.pdf .xlsx .xlsm .docx .txt .md</code></td><td>Opcional</td><td><code>projects\&lt;PLANTA&gt;\reference\</code></td>
+      <td>Documentación del contrato. Python la recoge de ahí y la sube a SharePoint.</td></tr>
+</table>
+
+<p>El alta crea además la carpeta de trabajo de la planta con <code>meteo_in\</code>, <code>results_out\</code>,
+   <code>reference\</code> y el <code>variant.txt</code>.</p>
+
+<div class="note">
+  <strong>El nombre lo es todo.</strong> El código de planta sale del nombre del <code>.PRJ</code>, y tiene que ser el
+  mismo que el <code>plant_code</code> del Excel y que el prefijo de los CSV diarios: <code>auto_run.bat</code> saca la
+  planta del <strong>texto anterior al primer <code>_</code></strong> del nombre del CSV
+  (<code>PL1_20260715.csv</code> → <code>PL1</code>). Si no coinciden, el CSV se queda en
+  <em>«planta no está dada de alta»</em>.
+</div>
+
+<h3>2.2 · Rutas del PC</h3>
+<table>
+  <tr><th style="width:230px">Qué</th><th>Ruta</th></tr>
+  <tr><td>Workspace de PVsyst</td><td><code>C:\Users\PVSYST1\PVsyst8.1_Data</code></td></tr>
+  <tr><td>Carpeta de operación</td><td><code>C:\Users\PVSYST1\PVSyst_CLI</code></td></tr>
+  <tr><td>Inbox</td><td><code>C:\Users\PVSYST1\PVSyst_CLI\inbox</code></td></tr>
+  <tr><td>Carpeta por planta</td><td><code>C:\Users\PVSYST1\PVSyst_CLI\projects\&lt;PLANTA&gt;</code></td></tr>
+  <tr><td>Logs</td><td><code>...\PVSyst_CLI\logs_bat\auto_alta_log.txt</code> · <code>auto_run_log.txt</code></td></tr>
+  <tr><td>CLI</td><td><code>C:\Program Files\PVsyst8.1.4\PVsystCLI.exe</code></td></tr>
+</table>
+
+<h3>2.3 · Lo que exige <code>auto_run.bat</code> en cada corrida</h3>
+<p>Antes de simular un CSV comprueba, y si falta algo salta la planta con el motivo en el log:</p>
+<ol>
+  <li><code>PVsyst8.1_Data\Projects\&lt;PLANTA&gt;.PRJ</code> — si no, «planta no está dada de alta».</li>
+  <li><code>PVSyst_CLI\projects\&lt;PLANTA&gt;\</code> y su <code>variant.txt</code>, no vacío.</li>
+  <li><code>Sites\&lt;PLANTA&gt;.SIT</code> y <code>Meteo\&lt;PLANTA&gt;.MEF</code>.</li>
+  <li>Que el fichero de variante que dice <code>variant.txt</code> exista de verdad
+      (<code>Projects\&lt;PLANTA&gt;.&lt;VARIANTE&gt;</code>).</li>
+  <li>Un intérprete de Python en el PATH: hace falta para <code>timeshift.py</code>, que reparte el desfase de
+      <code>08_Time_Shifts</code>. Sin saber el desfase no se simula, para no falsear el PR.</li>
+</ol>
+
+<h2 id="alta-fabric">3 · Alta en Fabric</h2>
+<ol>
+  <li><strong>La tabla del SCADA tiene que existir</strong> en el esquema <code>gold</code> del lakehouse:
+      <code>gold.&lt;scada_table_name&gt;</code>. Es de donde lee <code>scada_ingest</code>; el pipeline no la crea.</li>
+  <li><strong>Rellenar <code>plants_config.xlsx</code></strong> (sección 4) y <strong>subirlo a OneLake</strong>:
+      <code>Files/Raw PVSyst1/CONFIG/plants_config.xlsx</code>.</li>
+  <li><strong>Poner <code>pr_execution = TRUE</code></strong> en <code>01_Plants</code>. Mientras esté en FALSE, ningún
+      notebook toca la planta.</li>
+  <li>Lanzar <code>scada_ingest</code> y <code>scada_proc</code> a mano la primera vez (proceso completo) y comprobar que
+      <code>scada_raw</code> y <code>scada_proc</code> traen datos de la planta.</li>
+</ol>
+<div class="note">
+  El Excel que manda es <strong>el de OneLake</strong>. La copia del repositorio
+  (<code>Calculo PR/config/plants_config.xlsx</code>) es solo material de trabajo y se queda desfasada enseguida: al
+  escribir esta guía no tenía ni la planta PL1. Editar siempre bajando el de OneLake y volviéndolo a subir.
+</div>
+
+<h2 id="excel">4 · plants_config.xlsx, hoja a hoja</h2>
+
+<div class="note">
+  <strong>Cada hoja es una tabla con nombre</strong> (<code>T01_plants</code>, <code>T02_sensor_mapping</code>…). Los
+  notebooks buscan la <em>tabla</em>, no la hoja. Dos consecuencias prácticas: al añadir filas hay que hacerlo
+  <strong>dentro del rango de la tabla</strong> (que crezca sola, no pegando debajo), y <strong>no se renombran las
+  tablas</strong> aunque se renombre la hoja.
+</div>
+
+<h3>01_Plants · <code>T01_plants</code></h3>
+<p>Una fila por planta. Es el catálogo del que salen todas las demás hojas.</p>
+<table>
+  <tr><th style="width:180px">Columna</th><th>Qué poner</th></tr>
+  <tr><td><code>plant_code</code></td><td>Código corto. <strong>El mismo que el nombre del <code>.PRJ</code></strong> y que el prefijo de los CSV. Ej. <code>PL1</code>.</td></tr>
+  <tr><td><code>plant_name</code></td><td>Nombre legible («Plaza I»). Solo para informes.</td></tr>
+  <tr><td><code>pr_execution</code></td><td><code>TRUE</code>/<code>FALSE</code>. El interruptor general de la planta.</td></tr>
+  <tr><td><code>scada_table_name</code></td><td>Tabla del esquema gold, sin el prefijo: <code>plaza1_15min</code> → se lee <code>gold.plaza1_15min</code>.</td></tr>
+  <tr><td><code>pvsyst_file</code></td><td>Prefijo de los CSV de resultados que devuelve PVsyst.</td></tr>
+  <tr><td><code>ac_capacity_kw</code> / <code>dc_capacity_kw</code></td><td>Potencias de placa. Aparecen en el informe.</td></tr>
+  <tr><td><code>timezone</code></td><td><code>Europe/Madrid</code>.</td></tr>
+  <tr><td><code>aggregate_by_hour</code></td><td><code>TRUE</code> fuerza el bucket del test a 1 h aunque el SCADA venga a 15 min.</td></tr>
+  <tr><td><code>is_energy</code></td><td>El SCADA entrega energía en vez de potencia. <span class="small">Hoy se lee pero no lo usa ningún cálculo.</span></td></tr>
+  <tr><td><code>traceability_excel</code></td><td><code>TRUE</code> genera el Excel de trazabilidad de la planta.</td></tr>
+  <tr><td><code>report_pdf</code></td><td>Previsto para el PDF. <span class="small">Hoy no lo lee ningún notebook.</span></td></tr>
+</table>
+
+<h3>02_Sensors_Mapping · <code>T02_sensor_mapping</code></h3>
+<p>Una fila por sensor: traduce el nombre que trae el SCADA al nombre canónico que usa el pipeline.
+   <strong>Lo que no esté aquí no entra en <code>scada_raw</code></strong>.</p>
+<table>
+  <tr><th style="width:180px">Columna</th><th>Qué poner</th></tr>
+  <tr><td><code>plant_code</code></td><td><code>COMMON</code> = base común para todas las plantas. Una fila con el código concreto <strong>añade o sobrescribe</strong> la común.</td></tr>
+  <tr><td><code>columna_original</code></td><td>Nombre exacto de la columna en la tabla gold.</td></tr>
+  <tr><td><code>columna_destino</code></td><td>Nombre canónico: <code>GHI_01..n</code>, <code>POA_01..n</code>, <code>DHI_01..n</code>, <code>REF_01..n</code>, <code>T_AMB_01</code>, <code>SETPOINT_01</code>, <code>WA_01</code> (alarma de viento), <code>WS_01</code>, <code>PF</code>, <code>E_GRID</code>.</td></tr>
+  <tr><td><code>parametro</code></td><td>La familia, con la unidad tal cual: <code>POA (W/m2)</code>, <code>GHI (W/m2)</code>, <code>DHI (W/m2)</code>, <code>REF (W/m2)</code>, <code>T_AMB (ºC)</code>… De aquí sale a qué fila de <code>06_Limits</code> le toca.</td></tr>
+  <tr><td><code>agregacion</code></td><td>Cómo se agrega al subir de bucket: <code>mean</code> lo normal, <code>min</code> en SETPOINT (cualquier mínimo invalida el intervalo), <code>max</code> en la alarma de viento, <code>first</code> en Date.</td></tr>
+  <tr><td><code>unidad</code> / <code>comentario</code></td><td>Documentación.</td></tr>
+</table>
+<div class="note">
+  <strong>La energía siempre va a <code>columna_destino = E_GRID</code>.</strong> Es la fila que <code>pr_runner</code>
+  usa como energía medida, venga de <code>E_GRID_01</code> (PL1/PL2) o de <code>AP_01</code> (FRA). Si esa fila falta o
+  apunta a la columna equivocada, la planta calcula un PR sin energía.
+</div>
+
+<h3>03_EPI_Factors · <code>T03_EPI_Factors</code></h3>
+<table>
+  <tr><th style="width:180px">Columna</th><th>Qué poner</th></tr>
+  <tr><td><code>guaranteed_epi</code></td><td>EPI garantizado por contrato (0,98 en las tres plantas actuales).</td></tr>
+  <tr><td><code>degradation_factor</code></td><td>Factor de degradación aplicable al periodo (1 = sin degradación).</td></tr>
+  <tr><td><code>availability_factor</code></td><td>Factor de disponibilidad (1 = no se corrige).</td></tr>
+  <tr><td><code>period_start</code> / <code>period_end</code></td><td>Periodo al que aplican esos factores. Vacío = siempre.</td></tr>
+</table>
+
+<h3>04_Criteria_Selection · <code>T04_criteria_selection</code></h3>
+<p>Qué criterios de validez se exigen a cada intervalo. <strong><code>-1</code> (o vacío) = criterio apagado.</strong></p>
+<table>
+  <tr><th style="width:70px">Crit.</th><th style="width:210px">Sobre qué</th><th>Cómo se rellena</th></tr>
+  <tr><td><code>c1</code>–<code>c4</code></td><td>Media filtrada de POA / GHI / DHI / REF</td>
+      <td><code>0</code> = basta con que la media no esté vacía. <code>&gt;0</code> = exige media ≥ ese valor en W/m².</td></tr>
+  <tr><td><code>c5</code> / <code>c6</code></td><td>Horas válidas al día de POA / GHI</td>
+      <td>Nº mínimo de horas al día por encima del umbral mensual de <code>07_Irrandiance_Thresholds</code>. Si el día no llega, <strong>se cae el día entero</strong>.</td></tr>
+  <tr><td><code>c7</code></td><td>Setpoint</td><td>Umbral en kW: por debajo, la planta estaba limitada y el intervalo no cuenta.</td></tr>
+  <tr><td><code>c8</code></td><td>Alarma de viento</td><td><code>TRUE</code>/<code>FALSE</code>. Con TRUE, un <code>WA_01 = 1</code> invalida el intervalo.</td></tr>
+  <tr><td><code>c9</code></td><td>Factor de potencia</td><td><code>TRUE</code>/<code>FALSE</code>. Con TRUE exige <code>0,98 ≤ PF ≤ 1</code>; <strong>si el criterio está en TRUE y no hay columna <code>PF</code>, falla todo</strong>.</td></tr>
+</table>
+<p class="small"><code>all_valid</code> es el <strong>producto</strong> de los nueve: los apagados valen 1, así que un único
+   criterio mal puesto tira el intervalo entero.</p>
+
+<h3>05_Sensor_Outliers · <code>T05_sensor_outliers</code></h3>
+<p>Una fila por planta; las columnas van por familia (<code>POA_</code>, <code>GHI_</code>, <code>DHI_</code>,
+   <code>REF_</code>, <code>TAMB_</code>).</p>
+<table>
+  <tr><th style="width:210px">Columna</th><th style="width:90px">Método</th><th>Qué hace</th></tr>
+  <tr><td><code>&lt;FAM&gt;_iqr_k</code></td><td>1</td><td>Factor <em>k</em> del Tukey entre los sensores de la misma fila. <code>0</code> = apagado (así está hoy en todas).</td></tr>
+  <tr><td><code>&lt;FAM&gt;_max_dev_1/2/3</code></td><td>2</td><td>Rondas de desviación <strong>relativa</strong> contra la media, en tanto por uno: <code>0,04</code> = 4 %. Cada una vacía o a 0 se salta.</td></tr>
+  <tr><td><code>&lt;FAM&gt;_max_diff</code></td><td>3</td><td>Desviación <strong>absoluta</strong> contra la media, en W/m². <code>0</code> = apagado.</td></tr>
+</table>
+<p class="small">Los tres se aplican en cascada sobre los supervivientes del anterior. El método 2 es el que está vivo
+   hoy (4 % en POA de PL1 y PL2, 5 % en GHI de FRA).</p>
+
+<h3>06_Limits · <code>T06_limits</code></h3>
+<p><strong>Por familia, no por planta</strong>: una fila por parámetro y vale para todas. Es la única hoja sin
+   <code>plant_code</code>.</p>
+<table>
+  <tr><th style="width:180px">Columna</th><th style="width:150px">Si se deja vacía</th><th>Qué hace</th></tr>
+  <tr><td><code>parametro</code></td><td>—</td><td><code>POA (W/m2)</code>, <code>GHI (W/m2)</code>, <code>DHI (W/m2)</code>, <code>REF (W/m2)</code>, <code>T_AMB (ºC)</code>.</td></tr>
+  <tr><td><code>rango_min</code> / <code>rango_max</code></td><td>−6 / 1500<br>(−30 / 50 en T_AMB)</td><td>Límites físicos: fuera de ellos, <em>outside physical limits</em> y el valor se anula.</td></tr>
+  <tr><td><code>dead_threshold</code></td><td>0,0001</td><td>Cuánto puede moverse una lectura sin romper la racha de sensor congelado.</td></tr>
+  <tr><td><code>dead_min_run</code></td><td>3</td><td>Lecturas iguales seguidas para darlo por congelado. Con muestreo de 15 min, 3 = 45 min.</td></tr>
+  <tr><td><code>zero_max_hours</code></td><td>16 h en irradiancia<br><strong>apagado</strong> en T_AMB</td><td>Horas seguidas repitiendo el mismo ~0 antes de darlo por sensor apagado. Es lo que caza al piranómetro clavado en 0 a pleno sol. <code>0</code> = regla desactivada.</td></tr>
+  <tr><td><code>abrupt_change</code></td><td>800 W/m²<br>(4 ºC en T_AMB)</td><td>Salto contra la lectura viva anterior a partir del cual se marca <em>abrupt</em> (se marca pero no se anula).</td></tr>
+</table>
+<p class="small">Las dos últimas columnas nuevas (<code>dead_min_run</code>, <code>zero_max_hours</code>) pueden no existir
+   todavía en el libro: si no están, se usan los valores por defecto de la tabla.</p>
+
+<h3>07_Irrandiance_Thresholds · <code>T07_irradiance_thresholds</code></h3>
+<p><code>GHI_m1</code>…<code>GHI_m12</code> y <code>POA_m1</code>…<code>POA_m12</code>: la irradiancia mínima, mes a mes
+   y en W/m², que hace que un intervalo cuente como «hora válida» para <code>c5</code> (POA) y <code>c6</code> (GHI).
+   Un <code>0</code> desactiva el umbral de esa familia. Hoy: POA 500 en PL1 y PL2, 600 en FRA; GHI a 0 en todas.</p>
+
+<h3>08_Time_Shifts · <code>T08_time_shifts</code></h3>
+<table>
+  <tr><th style="width:180px">Columna</th><th>Qué poner</th></tr>
+  <tr><td><code>time_shift</code></td><td>Minutos de desfase <strong>total</strong> de la planta. Se <strong>suma a la esperada</strong>, nunca a la medida.</td></tr>
+  <tr><td><code>start_date</code> / <code>end_date</code></td><td>Tramo al que aplica: típicamente los dos cambios de hora del año.</td></tr>
+</table>
+<p class="small">El reparto lo hace <code>timeshift.py</code> en el PC: las <strong>horas enteras</strong> se corrigen
+   moviendo las fechas de una copia del CSV crudo, y el <strong>resto (entre −30 y +30 min)</strong> va como
+   <code>-imt</code> del CLI, que es el único rango que admite. El <code>.MEF</code> no se toca. Al ingerir los
+   resultados, <code>csv_ingest</code> deshace el desplazamiento leyendo esta misma tabla.</p>
+
+<h3>09_Albedo_Mapping · <code>T09_Albedo_Mapping</code></h3>
+<p>Una fila por medida de albedo: <code>albedo_measure</code> = <code>reflected_sensor</code> /
+   <code>direct_sensor</code>. El denominador es POA o GHI según la planta (PL1 y PL2 sobre POA, FRA sobre GHI). Solo
+   se promedian los albedos con <code>0 &lt; ALB &lt; 1</code>; es informativo y alimenta el CSV de meteo, no participa
+   en ningún criterio.</p>
+
+<h2 id="checklist">5 · Checklist de alta</h2>
+<ol>
+  <li>Elegir el <code>plant_code</code>. Que sea el nombre del <code>.PRJ</code>, el <code>plant_code</code> del Excel y el prefijo de los CSV.</li>
+  <li>Dejar en el inbox del PC: <code>.PRJ</code>, <code>.SIT</code>, <code>.MEF</code> y la variante <code>.V??</code> (más <code>.SFI</code>, <code>.PAN</code>, <code>.OND</code> y documentación si los hay). Ejecutar <code>auto_alta.bat</code> y leer <code>logs_bat\auto_alta_log.txt</code>.</li>
+  <li>Confirmar que existe <code>gold.&lt;scada_table_name&gt;</code> con datos.</li>
+  <li>Bajar <code>plants_config.xlsx</code> de OneLake y añadir la planta en <strong>01, 02 (solo lo que no cubra COMMON), 03, 04, 05, 07, 08 y 09</strong>. <code>06_Limits</code> no lleva planta.</li>
+  <li>Subir el Excel a <code>Files/Raw PVSyst1/CONFIG/</code>.</li>
+  <li><code>pr_execution = TRUE</code>.</li>
+  <li>Correr <code>scada_ingest</code> y <code>scada_proc</code> completos y revisar que hay filas y que los sensores no salen todos vacíos.</li>
+  <li>Dejar un CSV de meteo en el inbox del PC y comprobar que la simulación sale y que <code>csv_ingest</code> la recoge.</li>
+  <li>Lanzar el pipeline <code>PR_calculation</code> y revisar el Excel de trazabilidad.</li>
+</ol>
+
+<h2 id="errores">6 · Los fallos de siempre</h2>
+<table>
+  <tr><th style="width:320px">Síntoma</th><th>Causa casi segura</th></tr>
+  <tr><td>«planta no está dada de alta» en el log del PC</td><td>El nombre del CSV no empieza por el mismo código que el <code>.PRJ</code>.</td></tr>
+  <tr><td>La planta nueva no aparece por ningún sitio</td><td><code>pr_execution</code> en FALSE, o la fila se pegó <strong>debajo</strong> de la tabla y quedó fuera del rango.</td></tr>
+  <tr><td>Cambios en el Excel que no hacen nada</td><td>Se editó la copia del repositorio y no se subió a OneLake.</td></tr>
+  <tr><td>Un sensor que existe en el SCADA pero no llega a <code>scada_raw</code></td><td>Le falta su fila en <code>02_Sensors_Mapping</code>.</td></tr>
+  <tr><td>PR sin energía medida</td><td>Ninguna fila del mapping tiene <code>columna_destino = E_GRID</code>.</td></tr>
+  <tr><td>Todos los intervalos inválidos</td><td>Un criterio de <code>04</code> mal puesto: <code>all_valid</code> es el producto de todos.</td></tr>
+  <tr><td>El CSV se queda en el inbox sin simular</td><td><code>timeshift.py</code> abortó: falta Python en el PATH o la fila de <code>08_Time_Shifts</code> no cuadra con el CSV.</td></tr>
+</table>
+
+<footer class="doc">
+  Alta de plantas y configuración · Workspace Fabric <em>PVSyst&nbsp;-&nbsp;PR</em> · Enerlandgroup<br>
+  Config: <code>plants_config.xlsx</code> en <code>Files/Raw PVSyst1/CONFIG/</code> ·
+  PC: <code>auto_alta.bat</code>, <code>auto_run.bat</code>, <code>timeshift.py</code>.<br>
+  Escrito el 2026-09-02.
+</footer>
+
+</div>
+
+</body>
+</html>
