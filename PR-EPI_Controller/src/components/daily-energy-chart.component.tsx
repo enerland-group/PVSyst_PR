@@ -10,7 +10,7 @@
 import { useMemo, useState } from "react";
 import { VegaVisual, useCssTheme, type VisualizationSpec } from "@microsoft/fabric-visuals";
 import type { PrInterval } from "@/lib/pr-model";
-import { bucketize, pickGranularity, dateRange, type Gran } from "@/lib/aggregate";
+import { bucketize, pickGranularity, dateRange, isSubHourly, type Gran } from "@/lib/aggregate";
 
 const NAVY = "#1b3d6e";
 const MID = "#4a82c4";
@@ -27,7 +27,7 @@ const VEGA_CAPS = { disableCategoricalScroll: true, disableMinBarSize: true };
 
 type View = "bars" | "cumulative" | "delta";
 type GranMode = "auto" | Gran;
-const GRAN_LABEL: Record<Gran, string> = { hour: "hora", day: "día", week: "semana" };
+const GRAN_LABEL: Record<Gran, string> = { interval: "cuarto", hour: "hora", day: "día", week: "semana" };
 
 // La vista por día es ilegible pasados los ~100 días: se muestran solo los N días MÁS
 // RECIENTES del periodo, con 100 como techo y como valor por defecto.
@@ -60,7 +60,14 @@ export function ProductionChart({ intervals }: { intervals: PrInterval[] }) {
     const { min, max } = useMemo(() => dateRange(intervals), [intervals]);
     const spanDays = min && max ? Math.round((Date.parse(max) - Date.parse(min)) / 86400000) + 1 : 0;
     const allowHour = spanDays > 0 && spanDays <= 7;
-    const effGranMode: GranMode = granMode === "hour" && !allowHour ? "day" : granMode;
+    // El cuarto solo se ofrece si los datos son de verdad sub-horarios (en una
+    // planta horaria daría lo mismo que "hora") y en ventanas cortas: a 15 min
+    // son 96 barras al día, así que 2 días ya son 192, del orden de las 168 que
+    // admite la vista por hora en su tope de 7 días.
+    const subHourly = useMemo(() => isSubHourly(intervals), [intervals]);
+    const allowInterval = subHourly && spanDays > 0 && spanDays <= 2;
+    let effGranMode: GranMode = granMode === "hour" && !allowHour ? "day" : granMode;
+    if (effGranMode === "interval" && !allowInterval) effGranMode = allowHour ? "hour" : "day";
 
     // 'auto' cae a semana si hay demasiadas barras, de modo que SIEMPRE quepan.
     const gran: Gran = effGranMode === "auto" ? pickGranularity(intervals) : effGranMode;
@@ -151,6 +158,7 @@ export function ProductionChart({ intervals }: { intervals: PrInterval[] }) {
             <div className="flex flex-wrap gap-x-5 gap-y-2 items-center mb-3 font-mono text-300 text-muted-foreground">
                 <span className="flex items-center gap-1.5">
                     Agrupar:
+                    {allowInterval && <Btn active={effGranMode === "interval"} onClick={() => setGranMode("interval")}>Cuarto</Btn>}
                     {allowHour && <Btn active={effGranMode === "hour"} onClick={() => setGranMode("hour")}>Hora</Btn>}
                     <Btn active={effGranMode === "day"} onClick={() => setGranMode("day")}>Día</Btn>
                     <Btn active={effGranMode === "week"} onClick={() => setGranMode("week")}>Semana</Btn>

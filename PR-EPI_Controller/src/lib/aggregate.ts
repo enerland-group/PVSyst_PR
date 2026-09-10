@@ -6,7 +6,7 @@
 
 import type { PrInterval, PrDaily } from "@/lib/pr-model";
 
-export type Gran = "hour" | "day" | "week";
+export type Gran = "interval" | "hour" | "day" | "week";
 
 export interface Bucket {
     key: string;
@@ -41,11 +41,19 @@ export function filterByDate(intervals: PrInterval[], start: string, end: string
     return intervals.filter((iv) => (!start || iv.day >= start) && (!end || iv.day <= end));
 }
 
+/** ¿Los intervalos son sub-horarios? Basta con que alguno caiga fuera de la hora
+ *  en punto. Sirve para no ofrecer la agrupación por cuarto en plantas horarias,
+ *  donde daría exactamente lo mismo que "hora". */
+export function isSubHourly(intervals: PrInterval[]): boolean {
+    return intervals.some((iv) => iv.ts.slice(14, 16) !== "00");
+}
+
 /** Nº de buckets que generaría una granularidad (para decidir si cabe). */
 export function bucketCount(intervals: PrInterval[], gran: Gran): number {
     const keys = new Set<string>();
     for (const iv of intervals) {
-        if (gran === "hour") keys.add(iv.day + "T" + iv.hour);
+        if (gran === "interval") keys.add(iv.ts);
+        else if (gran === "hour") keys.add(iv.day + "T" + iv.hour);
         else if (gran === "day") keys.add(iv.day);
         else keys.add(weekStartFromDay(iv.day).key);
     }
@@ -55,6 +63,7 @@ export function bucketCount(intervals: PrInterval[], gran: Gran): number {
 /** Granularidad automática: la más fina cuyos buckets no superen maxBars.
  *  Si ni por semana cabe, devuelve 'week' (el gráfico permitirá scroll). */
 export function pickGranularity(intervals: PrInterval[], maxBars = 800): Gran {
+    if (isSubHourly(intervals) && bucketCount(intervals, "interval") <= maxBars) return "interval";
     if (bucketCount(intervals, "hour") <= maxBars) return "hour";
     if (bucketCount(intervals, "day") <= maxBars) return "day";
     return "week";
@@ -65,7 +74,12 @@ export function bucketize(intervals: PrInterval[], gran: Gran): Bucket[] {
     const map = new Map<string, Bucket>();
     for (const iv of intervals) {
         let key: string, label: string;
-        if (gran === "hour") {
+        if (gran === "interval") {
+            // Cada intervalo es su propio bucket: es la resolución nativa de
+            // pr_results (cuartohoraria si PVsyst y el SCADA lo permiten).
+            key = iv.ts;
+            label = `${iv.day.slice(5)} ${iv.ts.slice(11, 16)}`;
+        } else if (gran === "hour") {
             key = iv.day + "T" + iv.hour;
             label = `${iv.day.slice(5)} ${String(iv.hour).padStart(2, "0")}h`;
         } else if (gran === "day") {
