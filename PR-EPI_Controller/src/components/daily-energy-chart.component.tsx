@@ -10,7 +10,7 @@
 import { useMemo, useState } from "react";
 import { VegaVisual, useCssTheme, type VisualizationSpec } from "@microsoft/fabric-visuals";
 import type { PrInterval } from "@/lib/pr-model";
-import { bucketize, pickGranularity, dateRange, isSubHourly, type Gran } from "@/lib/aggregate";
+import { bucketize, pickGranularity, bucketCount, isSubHourly, type Gran } from "@/lib/aggregate";
 
 const NAVY = "#1b3d6e";
 const MID = "#4a82c4";
@@ -32,6 +32,11 @@ const GRAN_LABEL: Record<Gran, string> = { interval: "cuarto", hour: "hora", day
 // La vista por día es ilegible pasados los ~100 días: se muestran solo los N días MÁS
 // RECIENTES del periodo, con 100 como techo y como valor por defecto.
 // No se aplica a hora (ya limitada a spans <= 7 días) ni a semana (no satura).
+// Topes de barras por agrupación: 168 = una semana por horas; 200 ~ dos días a
+// 15 min. Por encima de eso las barras se solapan y el eje X es ilegible.
+const MAX_HOUR_BARS = 168;
+const MAX_INTERVAL_BARS = 200;
+
 const DAY_WINDOWS = [10, 30, 100] as const;
 type DayWindow = (typeof DAY_WINDOWS)[number];
 const DAY_WINDOW_DEFAULT: DayWindow = 100;
@@ -55,17 +60,21 @@ export function ProductionChart({ intervals }: { intervals: PrInterval[] }) {
     const [view, setView] = useState<View>("bars");
     const [dayWindow, setDayWindow] = useState<DayWindow>(DAY_WINDOW_DEFAULT);
 
-    // Si el periodo abarca más de 1 semana, se oculta la agrupación por hora
-    // (demasiadas barras y poco útil a esa escala).
-    const { min, max } = useMemo(() => dateRange(intervals), [intervals]);
-    const spanDays = min && max ? Math.round((Date.parse(max) - Date.parse(min)) / 86400000) + 1 : 0;
-    const allowHour = spanDays > 0 && spanDays <= 7;
-    // El cuarto solo se ofrece si los datos son de verdad sub-horarios (en una
-    // planta horaria daría lo mismo que "hora") y en ventanas cortas: a 15 min
-    // son 96 barras al día, así que 2 días ya son 192, del orden de las 168 que
-    // admite la vista por hora en su tope de 7 días.
+    // Qué agrupaciones se ofrecen depende de cuántas barras generarían, NO de
+    // cuántos días abarque el periodo. Así, en cuanto el filtro global se acota a
+    // una ventana corta —aunque sea de horas o de unos pocos cuartos—, el botón
+    // "Cuarto" aparece; antes exigía un span de días enteros y en un periodo
+    // largo no salía nunca.
     const subHourly = useMemo(() => isSubHourly(intervals), [intervals]);
-    const allowInterval = subHourly && spanDays > 0 && spanDays <= 2;
+    const hourBars = useMemo(() => bucketCount(intervals, "hour"), [intervals]);
+    const intervalBars = useMemo(
+        () => (subHourly ? bucketCount(intervals, "interval") : 0),
+        [intervals, subHourly],
+    );
+    const allowHour = hourBars > 0 && hourBars <= MAX_HOUR_BARS;
+    // El cuarto solo tiene sentido si los datos son de verdad sub-horarios: en una
+    // planta horaria daría exactamente lo mismo que "hora".
+    const allowInterval = subHourly && intervalBars > 0 && intervalBars <= MAX_INTERVAL_BARS;
     let effGranMode: GranMode = granMode === "hour" && !allowHour ? "day" : granMode;
     if (effGranMode === "interval" && !allowInterval) effGranMode = allowHour ? "hour" : "day";
 

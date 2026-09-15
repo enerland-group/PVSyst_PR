@@ -12,6 +12,11 @@ import { toDayRows } from "@/lib/aggregate";
 
 type Mode = "days" | "intervals";
 
+/** Alto de fila / cabecera / tope del contenedor de la rejilla (px). */
+const ROW_H = 40;
+const HEAD_H = 44;
+const MAX_H = 560;
+
 const estadoRenderer = (value: unknown) => {
     const ok = Boolean(value);
     return (
@@ -148,6 +153,11 @@ export function DailyDetailTable({ intervals }: { intervals: PrInterval[] }) {
         };
     }, [intervals, mode, filter]);
 
+    // La rejilla se virtualiza (rowHeight) para no volcar al DOM las ~10.000 filas
+    // de una planta cuartohoraria. El virtualizador mide su contenedor, así que la
+    // altura tiene que ser DEFINIDA: con pocas filas se ajusta, con muchas topa en MAX_H.
+    const gridHeight = Math.min(MAX_H, HEAD_H + data.rows.length * ROW_H);
+
     const Btn = ({ m, children }: { m: Mode; children: string }) => (
         <button
             onClick={() => setMode(m)}
@@ -175,8 +185,8 @@ export function DailyDetailTable({ intervals }: { intervals: PrInterval[] }) {
                     className="flex-1 min-w-[180px] px-3 py-1.5 border border-border border-l-[3px] border-l-primary rounded-r-sm font-mono text-300 bg-card outline-none focus:ring-2 focus:ring-ring"
                 />
             </div>
-            <div className="border border-border rounded-md overflow-auto max-h-[560px]">
-                <DataGrid data={data} columns={columns} theme={theme} />
+            <div className="border border-border rounded-md overflow-hidden" style={{ height: gridHeight }}>
+                <DataGrid data={data} columns={columns} theme={theme} rowHeight={ROW_H} />
             </div>
         </div>
     );

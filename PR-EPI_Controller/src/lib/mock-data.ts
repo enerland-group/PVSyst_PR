@@ -45,6 +45,8 @@ function mockIntervals(): PrInterval[] {
                 ts,
                 day: `2026-03-${dd}`,
                 hour: h,
+                minute: 0,
+                tsKey: `2026-03-${dd}T${String(h).padStart(2, "0")}:00`,
                 ms: Date.parse(ts),
                 eMedida: eMed,
                 eGarantizada: eGar,

@@ -60,6 +60,11 @@ export interface PrInterval {
     ts: string;            // timestamp original (texto)
     day: string;           // YYYY-MM-DD
     hour: number;          // 0..23
+    minute: number;        // 0..59 (0/15/30/45 en plantas cuartohorarias)
+    /** Marca canónica 'YYYY-MM-DDTHH:mm'. Es la clave con la que se compara el
+     *  filtro de periodo: mismo formato que un <input type="datetime-local">,
+     *  así el rango se puede acotar al cuarto de hora y no solo al día. */
+    tsKey: string;
     ms: number;            // epoch ms (orden / semanas)
     eMedida: number;       // kWh
     eGarantizada: number;
@@ -75,19 +80,29 @@ export interface PrInterval {
 
 /** Descompone un ts (string ISO/‘YYYY-MM-DD HH:mm’ o Date) en partes estables,
  *  evitando saltos de zona horaria (usa los componentes literales del string). */
-function tsParts(v: unknown): { ts: string; day: string; hour: number; ms: number } {
+function tsParts(v: unknown): { ts: string; day: string; hour: number; minute: number; tsKey: string; ms: number } {
+    const build = (ts: string, day: string, hour: number, minute: number, ms: number) => ({
+        ts,
+        day,
+        hour,
+        minute,
+        tsKey: `${day}T${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`,
+        ms,
+    });
     if (typeof v === "string") {
         const norm = v.replace(" ", "T");
-        return {
-            ts: v,
-            day: v.slice(0, 10),
-            hour: parseInt(v.slice(11, 13), 10) || 0,
-            ms: Date.parse(norm) || 0,
-        };
+        // Posiciones literales: 'YYYY-MM-DD HH:mm' y 'YYYY-MM-DDTHH:mm' coinciden.
+        return build(
+            v,
+            v.slice(0, 10),
+            parseInt(v.slice(11, 13), 10) || 0,
+            parseInt(v.slice(14, 16), 10) || 0,
+            Date.parse(norm) || 0,
+        );
     }
     const d = v instanceof Date ? v : new Date(v as number);
     const iso = isNaN(d.getTime()) ? "" : d.toISOString();
-    return { ts: iso, day: iso.slice(0, 10), hour: d.getUTCHours(), ms: d.getTime() || 0 };
+    return build(iso, iso.slice(0, 10), d.getUTCHours(), d.getUTCMinutes(), d.getTime() || 0);
 }
 
 /** Mapea filas de pr_results (por intervalo) a PrInterval[], ordenadas por tiempo. */
@@ -101,6 +116,8 @@ export function toIntervals(table: QueryTable): PrInterval[] {
                 ts: p.ts,
                 day: p.day,
                 hour: p.hour,
+                minute: p.minute,
+                tsKey: p.tsKey,
                 ms: p.ms,
                 eMedida: num(r.e_medida),
                 eGarantizada: num(r.e_garantizada),

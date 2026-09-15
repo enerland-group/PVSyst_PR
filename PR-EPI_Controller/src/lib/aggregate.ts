@@ -45,7 +45,91 @@ export function filterByDate(intervals: PrInterval[], start: string, end: string
  *  en punto. Sirve para no ofrecer la agrupación por cuarto en plantas horarias,
  *  donde daría exactamente lo mismo que "hora". */
 export function isSubHourly(intervals: PrInterval[]): boolean {
-    return intervals.some((iv) => iv.ts.slice(14, 16) !== "00");
+    return intervals.some((iv) => iv.minute !== 0);
+}
+
+/** Paso temporal más frecuente entre intervalos, en minutos (0 si no se puede
+ *  deducir). Fija el `step` del selector de periodo: 15 en Fraga, 60 en una
+ *  planta horaria, de modo que el picker salte justo de intervalo en intervalo. */
+export function stepMinutes(intervals: PrInterval[]): number {
+    const counts = new Map<number, number>();
+    let best = 0;
+    let bestN = 0;
+    for (let i = 1; i < intervals.length; i++) {
+        const d = Math.round((intervals[i].ms - intervals[i - 1].ms) / 60000);
+        if (d <= 0) continue;
+        const n = (counts.get(d) ?? 0) + 1;
+        counts.set(d, n);
+        if (n > bestN) { bestN = n; best = d; }
+    }
+    return best;
+}
+
+/** Reparte una fila HORARIA en el k-esimo sub-intervalo de su hora. */
+function splitInterval(iv: PrInterval, k: number, step: number, n: number): PrInterval {
+    const minute = k * step;
+    const hh = String(iv.hour).padStart(2, "0");
+    const mm = String(minute).padStart(2, "0");
+    return {
+        ...iv,
+        ts: `${iv.day}T${hh}:${mm}:00`,
+        minute,
+        tsKey: `${iv.day}T${hh}:${mm}`,
+        ms: iv.ms + k * step * 60000,
+        // ENERGIA (kWh): es un acumulado del paso -> se reparte entre los n
+        // sub-intervalos, de modo que el total del dia no cambia ni un kWh.
+        eMedida: iv.eMedida / n,
+        eGarantizada: iv.eGarantizada / n,
+        eEsperada: iv.eEsperada / n,
+        // IRRADIANCIA (W/m2): es una TASA, no un acumulado -> se repite tal cual
+        // (llega por el spread). Dividirla seria justo el error que deja la POA
+        // esperada 4x baja.
+        crit: { ...iv.crit },
+    };
+}
+
+/** Normaliza la rejilla temporal de una planta sub-horaria.
+ *
+ *  El pipeline escribe pr_results con la resolucion del run: 15 min si la planta
+ *  esta configurada asi (aggregate_by_hour=False) y 1 h en el resto. Si por lo que
+ *  sea se cuela alguna fila HORARIA en una planta cuartohoraria —un run viejo que
+ *  sobrevivio al borrado de huerfanas, o un tramo donde PVsyst solo tenia horario—
+ *  esa fila arrastra la energia de una hora entera: sumada junto a los cuartos
+ *  inflaria el dia, y comparada con ellos no es la misma magnitud.
+ *
+ *  Aqui esa fila se abre en los n sub-intervalos que le faltan (ver splitInterval).
+ *  Una planta horaria (paso dominante 60 min) se devuelve INTACTA: si todo el run
+ *  es horario, es que el run fue horario, y no hay nada que inventar.
+ */
+export function normalizeResolution(intervals: PrInterval[]): PrInterval[] {
+    const step = stepMinutes(intervals);
+    if (!step || step >= 60 || 60 % step !== 0) return intervals;
+    const n = 60 / step;
+
+    // Una hora que ya tiene alguna marca sub-horaria esta completa: su fila de
+    // :00 es un cuarto legitimo, no una fila horaria.
+    const subHours = new Set<string>();
+    for (const iv of intervals) if (iv.minute !== 0) subHours.add(`${iv.day}T${iv.hour}`);
+
+    const out: PrInterval[] = [];
+    let expanded = 0;
+    for (let i = 0; i < intervals.length; i++) {
+        const iv = intervals[i];
+        // La ULTIMA fila no se reparte aunque este sola en su hora: ahi lo normal
+        // es que sea el borde del periodo (el run corta a las 00:00 del dia
+        // siguiente), no una fila horaria. Repartirla inventaria tres marcas que
+        // el run todavia no ha calculado.
+        const closedHour = i < intervals.length - 1;
+        if (iv.minute !== 0 || !closedHour || subHours.has(`${iv.day}T${iv.hour}`)) {
+            out.push(iv);
+            continue;
+        }
+        expanded += 1;
+        for (let k = 0; k < n; k++) out.push(splitInterval(iv, k, step, n));
+    }
+    if (!expanded) return intervals;
+    console.warn(`[pr] ${expanded} intervalo(s) horario(s) repartidos en ${n} de ${step} min`);
+    return out.sort((a, b) => a.ms - b.ms);
 }
 
 /** Nº de buckets que generaría una granularidad (para decidir si cabe). */

@@ -10,7 +10,7 @@ import { ThemeContext } from "@/hooks/theme.context";
 import { pr } from "@/queries";
 import { rowsToObjects, str } from "@/lib/query-rows";
 import { summarizeIntervals, toIntervals, activeFromTable } from "@/lib/pr-model";
-import { dayStats, dateRange, filterByDate } from "@/lib/aggregate";
+import { dayStats, dateRange, filterByDate, normalizeResolution } from "@/lib/aggregate";
 import { MOCK_PLANTS, MOCK_ACTIVE, MOCK_INTERVALS } from "@/lib/mock-data";
 import { downloadLatestTraceability } from "@/lib/fabric-files";
 import { ENERLAND_LOGO } from "@/lib/logo";
@@ -43,9 +43,18 @@ function App() {
     // 2) Desglose por intervalo (pr_results). El resumen/veredicto se DERIVA de los intervalos.
     const intervalsQ = useSemanticModelQuery(selected ? pr.intervals(selected) : { connection: "prModel", query: "" });
 
-    const intervals = MOCK
-        ? MOCK_INTERVALS
-        : intervalsQ.data?.status === "success" ? toIntervals(intervalsQ.data.table) : [];
+    // normalizeResolution: la rejilla que se pinta es la del run (15 min en las
+    // plantas configuradas asi, 1 h en el resto). Si se cuela alguna fila horaria
+    // suelta en una planta cuartohoraria, se reparte para que todo el periodo
+    // tenga el mismo paso. Memoizado: alimenta a todos los useMemo de abajo.
+    const intervals = useMemo(
+        () => normalizeResolution(
+            MOCK
+                ? MOCK_INTERVALS
+                : intervalsQ.data?.status === "success" ? toIntervals(intervalsQ.data.table) : [],
+        ),
+        [intervalsQ.data],
+    );
     const active = MOCK
         ? MOCK_ACTIVE
         : intervalsQ.data?.status === "success" ? activeFromTable(intervalsQ.data.table) : new Set<string>();
@@ -60,6 +69,7 @@ function App() {
     const gs = gStart || range.min;
     const ge = gEnd || range.max;
     const viewIntervals = useMemo(() => filterByDate(intervals, gs, ge), [intervals, gs, ge]);
+    const emptyRange = Boolean(summary) && viewIntervals.length === 0;
 
     // criterios/veredicto = run completo; KPIs/gráficas/tabla/descargas = periodo seleccionado
     const days = useMemo(() => dayStats(intervals), [intervals]);
@@ -202,6 +212,12 @@ function App() {
                 )}
                 {loading && !summary && (
                     <div className="text-muted-foreground font-mono text-300 py-10 text-center">Cargando datos de Fabric…</div>
+                )}
+
+                {emptyRange && (
+                    <div className="border border-border bg-secondary rounded-md px-4 py-2.5 mb-6 font-mono text-300 text-muted-foreground">
+                        El periodo seleccionado no contiene ningún intervalo. Amplía el rango o pulsa «Todo».
+                    </div>
                 )}
 
                 {summary && (
