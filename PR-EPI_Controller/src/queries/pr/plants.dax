@@ -1,0 +1,7 @@
+EVALUATE
+SELECTCOLUMNS(
+    SUMMARIZE( pr_results, pr_results[plant_code], pr_results[plant_name] ),
+    "plant_code", pr_results[plant_code],
+    "plant_name", pr_results[plant_name]
+)
+ORDER BY [plant_name] ASC

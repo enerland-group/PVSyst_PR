@@ -1,5 +1,25 @@
+# Claude Code IDE settings
+.claude/
+
+# Python cache
 __pycache__/
+*.py[co]
 *.pyc
+
+# Estado y logs locales de los scripts de PVSyst_CLI
 state.json
 last_run.log
-.claude/
+
+# Solo se trackean notebooks (_fab_export/ y notebooks/)
+config/
+pc_scripts/
+enerland.ico
+Documentacion_Pipeline_PR.html
+FRA.FV.MEM.GEN.MI.000*
+preview_report.html
+_sample_report.html
+plants_config.xlsx
+
+# Datos sueltos de analisis puntual (barridos, comparativas): no son del proyecto
+comparison/
+shift_barrido_SAD.csv

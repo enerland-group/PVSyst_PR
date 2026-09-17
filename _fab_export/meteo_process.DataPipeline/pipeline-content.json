@@ -1,0 +1,188 @@
+{
+    "properties": {
+        "activities": [
+            {
+                "name": "scada_ingest",
+                "type": "TridentNotebook",
+                "state": "Active",
+                "dependsOn": [],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "typeProperties": {
+                    "notebookId": "1a3c403b-9307-4cdd-85bf-e10a37d67f54",
+                    "workspaceId": "0c4c3bbe-a6ae-404f-b1b7-7052bacfea11",
+                    "parameters": {
+                        "plant_codes": {
+                            "value": {
+                                "value": "@pipeline().parameters.plant_codes",
+                                "type": "Expression"
+                            },
+                            "type": "string"
+                        },
+                        "period_start": {
+                            "value": {
+                                "value": "@pipeline().parameters.period_start",
+                                "type": "Expression"
+                            },
+                            "type": "string"
+                        },
+                        "period_end": {
+                            "value": {
+                                "value": "@pipeline().parameters.period_end",
+                                "type": "Expression"
+                            },
+                            "type": "string"
+                        },
+                        "incremental": {
+                            "value": {
+                                "value": "@pipeline().parameters.incremental",
+                                "type": "Expression"
+                            },
+                            "type": "bool"
+                        },
+                        "overlap_hours": {
+                            "value": "6",
+                            "type": "int"
+                        }
+                    }
+                }
+            },
+            {
+                "name": "scada_proc",
+                "type": "TridentNotebook",
+                "state": "Active",
+                "dependsOn": [
+                    {
+                        "activity": "scada_ingest",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "typeProperties": {
+                    "notebookId": "2ce32a35-a89c-45b9-917b-bccc507ef080",
+                    "workspaceId": "0c4c3bbe-a6ae-404f-b1b7-7052bacfea11",
+                    "parameters": {
+                        "plant_codes": {
+                            "value": {
+                                "value": "@pipeline().parameters.plant_codes",
+                                "type": "Expression"
+                            },
+                            "type": "string"
+                        },
+                        "period_start": {
+                            "value": {
+                                "value": "@pipeline().parameters.period_start",
+                                "type": "Expression"
+                            },
+                            "type": "string"
+                        },
+                        "period_end": {
+                            "value": {
+                                "value": "@pipeline().parameters.period_end",
+                                "type": "Expression"
+                            },
+                            "type": "string"
+                        },
+                        "incremental": {
+                            "value": {
+                                "value": "@pipeline().parameters.incremental",
+                                "type": "Expression"
+                            },
+                            "type": "bool"
+                        },
+                        "overlap_days": {
+                            "value": "1",
+                            "type": "int"
+                        }
+                    }
+                }
+            },
+            {
+                "name": "meteo_export",
+                "type": "TridentNotebook",
+                "state": "Active",
+                "dependsOn": [
+                    {
+                        "activity": "scada_proc",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "typeProperties": {
+                    "notebookId": "c32379a3-ece1-48f5-8160-e43d80647a58",
+                    "workspaceId": "0c4c3bbe-a6ae-404f-b1b7-7052bacfea11",
+                    "parameters": {
+                        "plant_codes": {
+                            "value": {
+                                "value": "@pipeline().parameters.plant_codes",
+                                "type": "Expression"
+                            },
+                            "type": "string"
+                        },
+                        "period_start": {
+                            "value": {
+                                "value": "@pipeline().parameters.period_start",
+                                "type": "Expression"
+                            },
+                            "type": "string"
+                        },
+                        "period_end": {
+                            "value": {
+                                "value": "@pipeline().parameters.period_end",
+                                "type": "Expression"
+                            },
+                            "type": "string"
+                        },
+                        "resolution": {
+                            "value": {
+                                "value": "@pipeline().parameters.resolution",
+                                "type": "Expression"
+                            },
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        ],
+        "parameters": {
+            "plant_codes": {
+                "type": "string"
+            },
+            "period_start": {
+                "type": "string"
+            },
+            "period_end": {
+                "type": "string"
+            },
+            "resolution": {
+                "type": "string",
+                "defaultValue": "native"
+            },
+            "incremental": {
+                "type": "bool",
+                "defaultValue": false
+            }
+        }
+    }
+}
