@@ -1,0 +1,77 @@
+# Configuración de la automatización
+# Rutas para el equipo PVSYST1.
+
+paths:
+  # Carpeta LOCAL donde el script descarga (vía Graph) los meteos del SharePoint
+  # /inbox/. Los auto_*.bat también la leen aquí.
+  inbox: 'C:\Users\PVSYST1\PVSyst_CLI\inbox'
+
+  # Carpeta donde se acumulan los logs DIARIOS (log_alta_YYYYMMDD.txt,
+  # log_run_YYYYMMDD.txt). Al final del ciclo se suben a SharePoint /LOGS/ via Graph.
+  sharepoint_logs: 'C:\Users\PVSYST1\PVSyst_CLI\logs'
+
+  # Carpeta local con projects\<Planta>\results_out\<Planta>.csv y .pdf
+  proyectos: 'C:\Users\PVSYST1\PVSyst_CLI\projects'
+
+  # Carpeta donde los .bat dejan sus .log persistentes (auto_alta_log.txt,
+  # auto_run_log.txt). Los .bat escriben aquí (%OPS%\logs_bat\).
+  bat_logs: 'C:\Users\PVSYST1\PVSyst_CLI\logs_bat'
+
+  # Estado persistente (qué ficheros ya se han procesado)
+  state_file: 'C:\Users\PVSYST1\PVSyst_CLI\scripts\state.json'
+
+  # Excel de configuración (tabla T08_time_shifts). Lo usa scripts\timeshift.py
+  # para repartir el desfase de cada planta entre HourShiftF del MEF y el -imt
+  # del convert-meteo. Por defecto se baja de SharePoint <CONFIG>/plants_config.xlsx
+  # vía Graph y se cachea en plants_config_cache; descomenta plants_config solo si
+  # quieres forzar una copia local concreta (tiene prioridad sobre la descarga).
+  # plants_config: 'C:\Users\PVSYST1\PVSyst_CLI\config\plants_config.xlsx'
+  plants_config_cache: 'C:\Users\PVSYST1\PVSyst_CLI\cache\plants_config.cache.xlsx'
+
+bats:
+  auto_alta: 'C:\Users\PVSYST1\PVSyst_CLI\scripts\auto_alta.bat'
+  auto_run:  'C:\Users\PVSYST1\PVSyst_CLI\scripts\auto_run.bat'
+  timeout_segundos: 3600
+
+# Workspace y ejecutable de PVsyst. Deben coincidir con lo que tienen cableado
+# los auto_*.bat (WS y PVSYSTCLI). Los usa scripts\check_timeshift.py.
+pvsyst:
+  workspace: 'C:\Users\PVSYST1\PVsyst8.1_Data'
+  cli:       'C:\Program Files\PVsyst8.1.4\PVsystCLI.exe'
+
+teams:
+  # URL del webhook (Power Automate Workflow o Incoming Webhook clásico).
+  webhook_url: 'https://default943fa85b068d404abacb5f0baf8d31.a8.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/79367be3ad3840f29c7d98b777539ee4/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=vWNYSzq0oQz1T_AmWzcqWsk8T5N5sZMaUQuUV71r9sQ'
+
+sharepoint:
+  # URL https de la raíz de la biblioteca SharePoint (vista en navegador).
+  # Las carpetas <Planta>/ cuelgan de aquí.
+  base_url_raiz: 'C:\Users\PVSYST1\OneDrive - Enerland 2007 Fotovoltaica, S.L\Pvsyst1 - Documentos Sharepoint'
+
+# === Microsoft Graph (sustituye a OneDrive como mecanismo de entrega) ===
+graph:
+  client_id:            "58f369e5-0dfd-4435-802b-a90a6786bf22"
+  tenant_id:            "943fa85b-068d-404a-bacb-5f0baf8d31a8"
+  site_path:            "enerlandgroup.sharepoint.com:/sites/Pvsyst1"
+  drive_name:           "Documentos"
+
+  # Subcarpetas dentro de la biblioteca:
+  inbox_folder:         "inbox"           # entradas (lo que sube Fabric / lo que dejes manual)
+  results_root_folder:  ""                # vacío = resultados directamente en Documentos/<Planta>/<file>
+  logs_folder:          "LOGS"            # logs diarios acumulados
+  config_folder:        "CONFIG"          # donde vive plants_config.xlsx (lo lee timeshift.py)
+
+  # Variable de entorno con el client_secret de la app PVSyst1_EPI:
+  secret_env_var:       "PVSYST1_EPI_SECRET"
+
+# === Fabric (lanzar el pipeline 2 directamente, sin Power Automate) ===
+# Al terminar el ciclo, main.py llama a la Job Scheduler API de Fabric para lanzar
+# PR_calculation con plant_codes (plantas simuladas OK). Reutiliza
+# client_id/tenant_id/secret de la sección graph (pero con scope de Fabric).
+#
+# PREREQUISITO (una vez): en el Admin portal de Fabric habilitar "Service principals
+# can use Fabric APIs", y dar a la app PVSyst1_EPI acceso al workspace (rol
+# Contributor o Member). Sin esto la API responde 401/403.
+fabric:
+  workspace_id:   "0c4c3bbe-a6ae-404f-b1b7-7052bacfea11"   # PVSyst - PR
+  pr_pipeline_id: "f5bca0f3-f3dc-4af0-99bc-dfe910667024"   # PR_calculation (pipeline 2)

@@ -1,0 +1,456 @@
+<!DOCTYPE html><html><head>
+      <title>README</title>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      
+      <link rel="stylesheet" href="file:///c:\Users\SergioBeamonteGonzal\.antigravity\extensions\shd101wyy.markdown-preview-enhanced-0.8.25-universal\crossnote\dependencies\katex\katex.min.css">
+      
+      
+      
+      
+      
+      
+      
+      <style>
+      code[class*=language-],pre[class*=language-]{color:#333;background:0 0;font-family:Consolas,"Liberation Mono",Menlo,Courier,monospace;text-align:left;white-space:pre;word-spacing:normal;word-break:normal;word-wrap:normal;line-height:1.4;-moz-tab-size:8;-o-tab-size:8;tab-size:8;-webkit-hyphens:none;-moz-hyphens:none;-ms-hyphens:none;hyphens:none}pre[class*=language-]{padding:.8em;overflow:auto;border-radius:3px;background:#f5f5f5}:not(pre)>code[class*=language-]{padding:.1em;border-radius:.3em;white-space:normal;background:#f5f5f5}.token.blockquote,.token.comment{color:#969896}.token.cdata{color:#183691}.token.doctype,.token.macro.property,.token.punctuation,.token.variable{color:#333}.token.builtin,.token.important,.token.keyword,.token.operator,.token.rule{color:#a71d5d}.token.attr-value,.token.regex,.token.string,.token.url{color:#183691}.token.atrule,.token.boolean,.token.code,.token.command,.token.constant,.token.entity,.token.number,.token.property,.token.symbol{color:#0086b3}.token.prolog,.token.selector,.token.tag{color:#63a35c}.token.attr-name,.token.class,.token.class-name,.token.function,.token.id,.token.namespace,.token.pseudo-class,.token.pseudo-element,.token.url-reference .token.variable{color:#795da3}.token.entity{cursor:help}.token.title,.token.title .token.punctuation{font-weight:700;color:#1d3e81}.token.list{color:#ed6a43}.token.inserted{background-color:#eaffea;color:#55a532}.token.deleted{background-color:#ffecec;color:#bd2c00}.token.bold{font-weight:700}.token.italic{font-style:italic}.language-json .token.property{color:#183691}.language-markup .token.tag .token.punctuation{color:#333}.language-css .token.function,code.language-css{color:#0086b3}.language-yaml .token.atrule{color:#63a35c}code.language-yaml{color:#183691}.language-ruby .token.function{color:#333}.language-markdown .token.url{color:#795da3}.language-makefile .token.symbol{color:#795da3}.language-makefile .token.variable{color:#183691}.language-makefile .token.builtin{color:#0086b3}.language-bash .token.keyword{color:#0086b3}pre[data-line]{position:relative;padding:1em 0 1em 3em}pre[data-line] .line-highlight-wrapper{position:absolute;top:0;left:0;background-color:transparent;display:block;width:100%}pre[data-line] .line-highlight{position:absolute;left:0;right:0;padding:inherit 0;margin-top:1em;background:hsla(24,20%,50%,.08);background:linear-gradient(to right,hsla(24,20%,50%,.1) 70%,hsla(24,20%,50%,0));pointer-events:none;line-height:inherit;white-space:pre}pre[data-line] .line-highlight:before,pre[data-line] .line-highlight[data-end]:after{content:attr(data-start);position:absolute;top:.4em;left:.6em;min-width:1em;padding:0 .5em;background-color:hsla(24,20%,50%,.4);color:#f4f1ef;font:bold 65%/1.5 sans-serif;text-align:center;vertical-align:.3em;border-radius:999px;text-shadow:none;box-shadow:0 1px #fff}pre[data-line] .line-highlight[data-end]:after{content:attr(data-end);top:auto;bottom:.4em}html body{font-family:'Helvetica Neue',Helvetica,'Segoe UI',Arial,freesans,sans-serif;font-size:16px;line-height:1.6;color:#333;background-color:#fff;overflow:initial;box-sizing:border-box;word-wrap:break-word}html body>:first-child{margin-top:0}html body h1,html body h2,html body h3,html body h4,html body h5,html body h6{line-height:1.2;margin-top:1em;margin-bottom:16px;color:#000}html body h1{font-size:2.25em;font-weight:300;padding-bottom:.3em}html body h2{font-size:1.75em;font-weight:400;padding-bottom:.3em}html body h3{font-size:1.5em;font-weight:500}html body h4{font-size:1.25em;font-weight:600}html body h5{font-size:1.1em;font-weight:600}html body h6{font-size:1em;font-weight:600}html body h1,html body h2,html body h3,html body h4,html body h5{font-weight:600}html body h5{font-size:1em}html body h6{color:#5c5c5c}html body strong{color:#000}html body del{color:#5c5c5c}html body a:not([href]){color:inherit;text-decoration:none}html body a{color:#08c;text-decoration:none}html body a:hover{color:#00a3f5;text-decoration:none}html body img{max-width:100%}html body>p{margin-top:0;margin-bottom:16px;word-wrap:break-word}html body>ol,html body>ul{margin-bottom:16px}html body ol,html body ul{padding-left:2em}html body ol.no-list,html body ul.no-list{padding:0;list-style-type:none}html body ol ol,html body ol ul,html body ul ol,html body ul ul{margin-top:0;margin-bottom:0}html body li{margin-bottom:0}html body li.task-list-item{list-style:none}html body li>p{margin-top:0;margin-bottom:0}html body .task-list-item-checkbox{margin:0 .2em .25em -1.8em;vertical-align:middle}html body .task-list-item-checkbox:hover{cursor:pointer}html body blockquote{margin:16px 0;font-size:inherit;padding:0 15px;color:#5c5c5c;background-color:#f0f0f0;border-left:4px solid #d6d6d6}html body blockquote>:first-child{margin-top:0}html body blockquote>:last-child{margin-bottom:0}html body hr{height:4px;margin:32px 0;background-color:#d6d6d6;border:0 none}html body table{margin:10px 0 15px 0;border-collapse:collapse;border-spacing:0;display:block;width:100%;overflow:auto;word-break:normal;word-break:keep-all}html body table th{font-weight:700;color:#000}html body table td,html body table th{border:1px solid #d6d6d6;padding:6px 13px}html body dl{padding:0}html body dl dt{padding:0;margin-top:16px;font-size:1em;font-style:italic;font-weight:700}html body dl dd{padding:0 16px;margin-bottom:16px}html body code{font-family:Menlo,Monaco,Consolas,'Courier New',monospace;font-size:.85em;color:#000;background-color:#f0f0f0;border-radius:3px;padding:.2em 0}html body code::after,html body code::before{letter-spacing:-.2em;content:'\00a0'}html body pre>code{padding:0;margin:0;word-break:normal;white-space:pre;background:0 0;border:0}html body .highlight{margin-bottom:16px}html body .highlight pre,html body pre{padding:1em;overflow:auto;line-height:1.45;border:#d6d6d6;border-radius:3px}html body .highlight pre{margin-bottom:0;word-break:normal}html body pre code,html body pre tt{display:inline;max-width:initial;padding:0;margin:0;overflow:initial;line-height:inherit;word-wrap:normal;background-color:transparent;border:0}html body pre code:after,html body pre code:before,html body pre tt:after,html body pre tt:before{content:normal}html body blockquote,html body dl,html body ol,html body p,html body pre,html body ul{margin-top:0;margin-bottom:16px}html body kbd{color:#000;border:1px solid #d6d6d6;border-bottom:2px solid #c7c7c7;padding:2px 4px;background-color:#f0f0f0;border-radius:3px}@media print{html body{background-color:#fff}html body h1,html body h2,html body h3,html body h4,html body h5,html body h6{color:#000;page-break-after:avoid}html body blockquote{color:#5c5c5c}html body pre{page-break-inside:avoid}html body table{display:table}html body img{display:block;max-width:100%;max-height:100%}html body code,html body pre{word-wrap:break-word;white-space:pre}}.markdown-preview{width:100%;height:100%;box-sizing:border-box}.markdown-preview ul{list-style:disc}.markdown-preview ul ul{list-style:circle}.markdown-preview ul ul ul{list-style:square}.markdown-preview ol{list-style:decimal}.markdown-preview ol ol,.markdown-preview ul ol{list-style-type:lower-roman}.markdown-preview ol ol ol,.markdown-preview ol ul ol,.markdown-preview ul ol ol,.markdown-preview ul ul ol{list-style-type:lower-alpha}.markdown-preview .newpage,.markdown-preview .pagebreak{page-break-before:always}.markdown-preview pre.line-numbers{position:relative;padding-left:3.8em;counter-reset:linenumber}.markdown-preview pre.line-numbers>code{position:relative}.markdown-preview pre.line-numbers .line-numbers-rows{position:absolute;pointer-events:none;top:1em;font-size:100%;left:0;width:3em;letter-spacing:-1px;border-right:1px solid #999;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}.markdown-preview pre.line-numbers .line-numbers-rows>span{pointer-events:none;display:block;counter-increment:linenumber}.markdown-preview pre.line-numbers .line-numbers-rows>span:before{content:counter(linenumber);color:#999;display:block;padding-right:.8em;text-align:right}.markdown-preview .mathjax-exps .MathJax_Display{text-align:center!important}.markdown-preview:not([data-for=preview]) .code-chunk .code-chunk-btn-group{display:none}.markdown-preview:not([data-for=preview]) .code-chunk .status{display:none}.markdown-preview:not([data-for=preview]) .code-chunk .output-div{margin-bottom:16px}.markdown-preview .md-toc{padding:0}.markdown-preview .md-toc .md-toc-details{margin:0;padding:0;border:none}.markdown-preview .md-toc summary.md-toc-link-wrapper{cursor:pointer;list-style-position:outside}.markdown-preview .md-toc summary.md-toc-link-wrapper::marker{font-size:.85em}.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link{display:inline;padding:.25rem 0}.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link div,.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link p{display:inline}.markdown-preview .md-toc .md-toc-link-wrapper.highlighted .md-toc-link{font-weight:800}.markdown-preview .md-toc .md-toc-link-wrapper[data-level='0']{margin-left:12px}.markdown-preview .md-toc .md-toc-link-wrapper[data-level='1']{margin-left:28px}.markdown-preview .md-toc .md-toc-link-wrapper[data-level='2']{margin-left:44px}.markdown-preview .md-toc .md-toc-link-wrapper[data-level='3']{margin-left:60px}.markdown-preview .md-toc .md-toc-link-wrapper[data-level='4']{margin-left:76px}.markdown-preview .md-toc .md-toc-link-wrapper[data-level='5']{margin-left:80px}.markdown-preview a.tag,.markdown-preview a.tag:active,.markdown-preview a.tag:link,.markdown-preview a.tag:visited,.markdown-preview span.tag{display:inline-block;background-color:var(--vscode-badge-background,rgba(127,127,127,.18));color:var(--vscode-badge-foreground,currentColor);border-radius:2em;font-size:.85em;font-weight:500;padding:.05em .55em;line-height:1.5;white-space:nowrap;text-decoration:none;text-shadow:none;box-shadow:none;transition:background-color .12s ease,opacity .12s ease}.markdown-preview a.tag{cursor:pointer}.markdown-preview a.tag:focus,.markdown-preview a.tag:hover{background-color:var(--vscode-badge-background,rgba(127,127,127,.32));color:var(--vscode-badge-foreground,currentColor);opacity:.85;text-decoration:none;outline:0}.markdown-preview .wikilink-embed-content{border-left:3px solid var(--vscode-textBlockQuote-border,rgba(128,128,128,.3));background:var(--vscode-textBlockQuote-background,rgba(128,128,128,.05));margin:.5em 0;padding:.5em .75em;border-radius:0 3px 3px 0}.markdown-preview .wikilink-embed-content.wikilink-embed-error{border-left-color:var(--vscode-errorForeground,#cf222e);color:var(--vscode-errorForeground,#cf222e);font-style:italic;opacity:.8}.markdown-preview .wikilink-embed-content h1:first-child,.markdown-preview .wikilink-embed-content h2:first-child,.markdown-preview .wikilink-embed-content h3:first-child,.markdown-preview .wikilink-embed-content h4:first-child,.markdown-preview .wikilink-embed-content h5:first-child,.markdown-preview .wikilink-embed-content h6:first-child{margin-top:.25em}.markdown-preview .wikilink-embed-content .wikilink-embed-content{margin:.25em 0;padding:.25em .5em}.markdown-preview .block-id{display:none}.scrollbar-style::-webkit-scrollbar{width:8px}.scrollbar-style::-webkit-scrollbar-track{border-radius:10px;background-color:transparent}.scrollbar-style::-webkit-scrollbar-thumb{border-radius:5px;background-color:rgba(150,150,150,.66);border:4px solid rgba(150,150,150,.66);background-clip:content-box}html body[for=html-export]:not([data-presentation-mode]){position:relative;width:100%;height:100%;top:0;left:0;margin:0;padding:0;overflow:auto}html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{position:relative;top:0;min-height:100vh}@media screen and (min-width:914px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{padding:2em calc(50% - 457px + 2em)}}@media screen and (max-width:914px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{padding:2em}}@media screen and (max-width:450px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{font-size:14px!important;padding:1em}}@media print{html body[for=html-export]:not([data-presentation-mode]) #sidebar-toc-btn{display:none}}html body[for=html-export]:not([data-presentation-mode]) #sidebar-toc-btn{position:fixed;bottom:8px;left:8px;font-size:28px;cursor:pointer;color:inherit;z-index:99;width:32px;text-align:center;opacity:.4}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] #sidebar-toc-btn{opacity:1}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc{position:fixed;top:0;left:0;width:300px;height:100%;padding:32px 0 48px 0;font-size:14px;box-shadow:0 0 4px rgba(150,150,150,.33);box-sizing:border-box;overflow:auto;background-color:inherit}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar{width:8px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar-track{border-radius:10px;background-color:transparent}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar-thumb{border-radius:5px;background-color:rgba(150,150,150,.66);border:4px solid rgba(150,150,150,.66);background-clip:content-box}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc a{text-decoration:none}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc{padding:0 16px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-details{margin:0;padding:0;border:none}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link{display:inline;padding:.25rem 0}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link div,html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link p{display:inline}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper.highlighted .md-toc-link{font-weight:800}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper[data-level='0']{padding-left:0}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper[data-level='1']{padding-left:16px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper[data-level='2']{padding-left:32px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper[data-level='3']{padding-left:48px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper[data-level='4']{padding-left:64px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper[data-level='5']{padding-left:80px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{left:300px;width:calc(100% - 300px);padding:2em calc(50% - 457px - 300px / 2);margin:0;box-sizing:border-box}@media screen and (max-width:1274px){html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{padding:2em}}@media screen and (max-width:450px){html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{width:100%}}html body[for=html-export]:not([data-presentation-mode]):not([html-show-sidebar-toc]) .markdown-preview{left:50%;transform:translateX(-50%)}html body[for=html-export]:not([data-presentation-mode]):not([html-show-sidebar-toc]) .md-sidebar-toc{display:none}
+/* Please visit the URL below for more information: */
+/*   https://shd101wyy.github.io/markdown-preview-enhanced/#/customize-css */
+
+      </style>
+      <script type="text/javascript">
+  document.addEventListener("DOMContentLoaded", function () {
+    // your code here
+  });
+</script>
+    </head>
+    <body for="html-export">
+      <div class="crossnote markdown-preview  ">
+      
+<h1 id="manual-de-uso--automatización-pvsyst">Manual de uso — Automatización PVsyst </h1>
+<p>Esta guía es para <strong>subir los archivos</strong> al sistema. El procesado lo hace un script automático en el PC <code>PVSYST1</code> que se lanza una o dos veces al día. El proceso consiste en subir los ficheros correctos en la carpeta <code>INBOX</code> con los nombres adecuados.</p>
+<hr>
+<h2 id="1-cómo-funciona-en-30-segundos">1. Cómo funciona en 30 segundos </h2>
+<ol>
+<li>Se suben los archivos a la carpeta <strong>INBOX</strong> de SharePoint.</li>
+<li>El script se despierta, mira qué hay y procesa cada planta por separado.</li>
+<li>Los resultados aparecen en una subcarpeta <code>&lt;NombrePlanta&gt;\</code> de la misma biblioteca de SharePoint.</li>
+<li>Llega una <strong>notificación al canal de Teams</strong> con un resumen.</li>
+<li>Los logs detallados se guardan en <code>LOGS\</code> (por si hay que mirar detalles cuando falla algo).</li>
+</ol>
+<hr>
+<h2 id="2-qué-puedes-hacer-con-el-sistema">2. Qué puedes hacer con el sistema </h2>
+<p>Hay <strong>tres tipos de operación</strong>, y se distinguen solo por <strong>la extensión<br>
+del archivo principal</strong> que subes:</p>
+<table>
+<thead>
+<tr>
+<th>Quieres hacer…</th>
+<th>Subes un archivo con extensión…</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Dar de alta una planta nueva en PVsyst</td>
+<td><code>.PRJ</code>, <code>.SIT</code>, <code>.MEF</code> y (opcionalmente <code>.PAN</code>, <code>.OND</code>)</td>
+</tr>
+<tr>
+<td>Cambiar la variante activa de una planta ya existente</td>
+<td><code>.V??</code> (ej. <code>.V01</code>, <code>.V03</code>, <code>.VGF</code>…)</td>
+</tr>
+<tr>
+<td>Lanzar una simulación diaria con datos meteorológicos nuevos</td>
+<td><code>.CSV</code></td>
+</tr>
+</tbody>
+</table>
+<p>Puedes mezclar varias operaciones y varias plantas en el <strong>mismo lote</strong><br>
+(misma subida). El script las procesa una a una sin pisarse.</p>
+<hr>
+<h2 id="3-regla-de-oro-los-nombres-mandan">3. Regla de oro: los nombres mandan </h2>
+<p>El script <strong>identifica a qué planta pertenece cada archivo por su<br>
+nombre</strong>, no por carpetas ni por contenido.</p>
+<h3 id="archivos-específicos-de-planta">Archivos específicos de planta </h3>
+<p>Estos tienen que llamarse <strong>exactamente igual que la planta</strong> (mismo<br>
+nombre antes del punto):</p>
+<ul>
+<li><code>&lt;Planta&gt;.PRJ</code> — el proyecto PVsyst.</li>
+<li><code>&lt;Planta&gt;.SIT</code> — el sitio (coordenadas).</li>
+<li><code>&lt;Planta&gt;.MEF</code> — fichero meteorológico de referencia.</li>
+<li><code>&lt;Planta&gt;.MET</code> — meteo intermedio (si lo subes manualmente).</li>
+<li><code>&lt;Planta&gt;.SFI</code> — modelo de simulación, si lo usas.</li>
+<li><code>&lt;Planta&gt;.V01</code>, <code>&lt;Planta&gt;.V02</code>, <code>&lt;Planta&gt;.VGF</code>, etc. — variantes.</li>
+</ul>
+<p><strong>Ejemplo correcto</strong> para una planta llamada <code>Plaza-ex</code>:</p>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>Plaza-ex.PRJ
+Plaza-ex.SIT
+Plaza-ex.MEF
+Plaza-ex.V01
+</code></pre><p><strong>El nombre tiene que ser idéntico</strong>. Si subes <code>Plaza-ex.PRJ</code> y<br>
+<code>PlazaEx.SIT</code>, el script considerará que son de plantas distintas y<br>
+fallará el alta porque la planta <code>Plaza-ex</code> no tiene SIT.</p>
+<h3 id="archivos-compartibles-entre-plantas">Archivos compartibles entre plantas </h3>
+<p>Estos tienen el nombre del componente, no de la planta — son<br>
+recursos genéricos:</p>
+<ul>
+<li><code>.PAN</code> — módulos fotovoltaicos (ej. <code>JAM72D42-625_LB.PAN</code>).</li>
+<li><code>.OND</code> — inversores (ej. <code>SUN2000-330KTL.OND</code>).</li>
+</ul>
+<p>Si subes uno junto a un alta, se asocia automáticamente a la planta que<br>
+estés dando de alta en ese momento.</p>
+<h3 id="archivos-de-referencia-documentación">Archivos de referencia (documentación) </h3>
+<p>Extensiones <code>.pdf</code>, <code>.xlsx</code>, <code>.xlsm</code>, <code>.docx</code>, <code>.txt</code>, <code>.md</code>.</p>
+<p>Para que se asocien a una planta concreta, su <strong>nombre debe contener el<br>
+nombre de la planta</strong>. Ejemplo:</p>
+<ul>
+<li><code>memoria-tecnica-Plaza-ex.pdf</code> → se guarda en <code>Plaza-ex\reference\</code></li>
+<li><code>tabla-calculos.xlsx</code> (sin el nombre de la planta) → no se asocia a<br>
+ninguna planta y se ignora.</li>
+</ul>
+<h3 id="csv-de-simulación">CSV de simulación </h3>
+<p>El nombre debe <strong>empezar con el nombre de la planta seguido de <code>_</code></strong>:</p>
+<ul>
+<li>✅ <code>Plaza-ex_RawData_20260216-20260429.csv</code></li>
+<li>✅ <code>Planta-Norte_meteo_mayo2026.csv</code></li>
+<li>❌ <code>meteo-Plaza-ex.csv</code> (no empieza por el nombre de la planta)</li>
+</ul>
+<p>El primer trozo antes del primer <code>_</code> es lo que el script toma como nombre<br>
+de planta.</p>
+<hr>
+<h2 id="4-casos-de-uso-paso-a-paso">4. Casos de uso paso a paso </h2>
+<h3 id="a-dar-de-alta-una-planta-nueva">A. Dar de alta una planta nueva </h3>
+<p><strong>Lo que tienes que subir al <code>INBOX</code>:</strong></p>
+<ol>
+<li><code>&lt;Planta&gt;.PRJ</code> (obligatorio)</li>
+<li><code>&lt;Planta&gt;.SIT</code> (obligatorio)</li>
+<li><code>&lt;Planta&gt;.MEF</code> (obligatorio)</li>
+<li><code>&lt;Planta&gt;.PAN</code> o cualquier <code>.PAN</code> necesario (recomendado)</li>
+<li><code>&lt;Planta&gt;.OND</code> o cualquier <code>.OND</code> necesario (recomendado)</li>
+<li>(Opcional) <code>&lt;Planta&gt;.V01</code> (u otra extensión <code>.V??</code>) si quieres que se<br>
+active esa variante desde el inicio. Si no subes ninguna, se asignará<br>
+automáticamente la variante <code>VC0</code>.</li>
+<li>(Opcional) Memoria técnica u otros documentos en <code>.pdf</code>, <code>.xlsx</code>, etc.<br>
+Si quieres que se guarden en la carpeta de la planta, asegúrate de<br>
+que el nombre del documento contenga el nombre de la planta.</li>
+</ol>
+<p><strong>Si falta <code>.SIT</code> o <code>.MEF</code></strong> → la alta falla y verás <code>✗ Error alta planta &lt;Planta&gt;</code> en Teams.</p>
+<h3 id="b-cambiar-la-variante-activa-de-una-planta">B. Cambiar la variante activa de una planta </h3>
+<p><strong>Pre-requisito</strong>: la planta tiene que estar ya dada de alta en<br>
+ejecuciones anteriores.</p>
+<p><strong>Lo que tienes que subir al <code>INBOX</code>:</strong></p>
+<ul>
+<li>Solo el fichero <code>&lt;Planta&gt;.V01</code> (o <code>.V02</code>, <code>.VGF</code>, …) de la variante<br>
+nueva. <strong>Nada más</strong> es necesario.</li>
+</ul>
+<p>El script actualiza la variante activa de la planta para futuras<br>
+simulaciones.</p>
+<p><strong>Si la planta no está dada de alta</strong> → error: <code>✗ Error cambio de variante en planta &lt;Planta&gt;</code> en Teams. Da primero el alta (caso A).</p>
+<h3 id="c-lanzar-una-simulación-diaria-con-datos-meteorológicos">C. Lanzar una simulación diaria con datos meteorológicos </h3>
+<p><strong>Pre-requisito</strong>: la planta está dada de alta.</p>
+<p><strong>Lo que tienes que subir al <code>INBOX</code>:</strong></p>
+<ul>
+<li>El fichero CSV con los datos meteorológicos del periodo a simular,<br>
+nombrado como <code>&lt;Planta&gt;_&lt;lo-que-quieras&gt;.csv</code>.</li>
+</ul>
+<p><strong>Resultado</strong>: en <code>&lt;Planta&gt;\</code> aparecen:</p>
+<ul>
+<li><code>&lt;Planta&gt;_&lt;YYYYMMDD&gt;.csv</code> — resultados de la simulación.</li>
+<li><code>&lt;Planta&gt;_&lt;YYYYMMDD&gt;.pdf</code> — informe PVsyst.</li>
+</ul>
+<p>(<code>&lt;YYYYMMDD&gt;</code> es la fecha del día en que se ejecutó la simulación,<br>
+ej. <code>Plaza-ex_20260514.csv</code>.)</p>
+<h3 id="d-hacer-varias-cosas-a-la-vez">D. Hacer varias cosas a la vez </h3>
+<p>Puedes meter todos los archivos juntos en una misma subida. El script<br>
+los separa solo por nombre de planta. Ejemplo válido:</p>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>Plaza-ex.PRJ
+Plaza-ex.SIT
+Plaza-ex.MEF
+Plaza-ex.V01                  ← alta de Plaza-ex con variante V01
+Norte.PRJ
+Norte.SIT
+Norte.MEF                     ← alta de Norte (variante por defecto)
+Sur.V02                       ← cambio de variante en Sur
+Sur_meteo_mayo.csv            ← simulación de Sur con su nueva variante
+JAM72D42-625_LB.PAN           ← módulo compartido entre altas
+SUN2000-330KTL.OND            ← inversor compartido
+</code></pre><p>El orden de procesado es siempre:</p>
+<ol>
+<li>Primero las altas (<code>.PRJ</code>)</li>
+<li>Luego los cambios de variante (<code>.V??</code>)</li>
+<li>Finalmente las simulaciones (<code>.CSV</code>)</li>
+</ol>
+<hr>
+<h2 id="5-cómo-subir-archivos-correctamente">5. Cómo subir archivos correctamente </h2>
+<ol>
+<li>
+<p>Abrir el <code>INBOX</code> desde el explorador de Windows (es una carpeta de<br>
+OneDrive sincronizada).</p>
+</li>
+<li>
+<p>Copiar / arrastrar los archivos.</p>
+</li>
+<li>
+<p><strong>Esperar a que OneDrive termine de sincronizar.</strong> Los iconos pasan<br>
+por estos estados:</p>
+<table>
+<thead>
+<tr>
+<th>Icono</th>
+<th>Significado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>🔵 Círculos azules girando</td>
+<td>Sincronizando, <strong>no lanzar todavía</strong></td>
+</tr>
+<tr>
+<td>✅ Tick verde</td>
+<td>Sincronizado y disponible en la nube</td>
+</tr>
+<tr>
+<td>☁️ Nube</td>
+<td>Solo en la nube, no descargado localmente</td>
+</tr>
+</tbody>
+</table>
+</li>
+<li>
+<p>Si lanzas algo antes de que aparezca el tick verde, el script puede<br>
+no ver los archivos o verlos a medias. <strong>Espera siempre al tick<br>
+verde.</strong></p>
+</li>
+</ol>
+<p>Hay un margen de seguridad adicional: el script ignora archivos que se<br>
+hayan subido en los últimos 30 segundos antes del momento de<br>
+ejecución.</p>
+<hr>
+<h2 id="6-qué-verás-en-teams">6. Qué verás en Teams </h2>
+<p>Cada vez que el script se ejecuta y procesa algo, llega un mensaje al<br>
+canal con el formato:</p>
+<blockquote>
+<p><strong>Sim. 14/05/2026</strong><br>
+✓ Alta planta <strong>Plaza-ex</strong><br>
+✓ Cambio de variante en planta <strong>Sur</strong><br>
+✓ Simulación diaria completa <strong>Norte</strong> (cuartohoraria)</p>
+</blockquote>
+<p>Cada línea lleva al inicio <strong>✓</strong> si la operación se completó bien o <strong>✗</strong><br>
+si falló. El nombre de la planta va en negrita para localizarlo de un<br>
+vistazo.</p>
+<p><strong>El título "Sim. ..."</strong> sale en rojo si hubo cualquier error en la<br>
+ejecución:</p>
+<blockquote>
+<p><strong>Sim. 14/05/2026</strong> (en rojo)<br>
+✓ Alta planta <strong>Plaza-ex</strong><br>
+✗ Error alta planta <strong>Sur</strong><br>
+✓ Simulación diaria completa <strong>Norte</strong> (cuartohoraria)</p>
+</blockquote>
+<p>Posibles eventos que pueden aparecer:</p>
+<table>
+<thead>
+<tr>
+<th>Evento</th>
+<th>Significado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>✓ Alta planta **X**</code></td>
+<td>La planta <code>X</code> se dio de alta correctamente.</td>
+</tr>
+<tr>
+<td><code>✓ Cambio de variante en planta **X**</code></td>
+<td>Variante actualizada.</td>
+</tr>
+<tr>
+<td><code>✓ Simulación diaria completa **X** (cuartohoraria)</code></td>
+<td>Datos en pasos de 15 min.</td>
+</tr>
+<tr>
+<td><code>✓ Simulación diaria completa **X** (horaria)</code></td>
+<td>PVsyst rechazó el subhorario y simuló en horario.</td>
+</tr>
+<tr>
+<td><code>✗ Error alta planta **X**</code></td>
+<td>Faltan archivos, hay duplicados, o la planta ya existía.</td>
+</tr>
+<tr>
+<td><code>✗ Error cambio de variante en planta **X**</code></td>
+<td>La planta no estaba dada de alta o falla similar.</td>
+</tr>
+<tr>
+<td><code>✗ Error simulación diaria **X**</code></td>
+<td>El CSV no se pudo procesar (formato, falta MET, …).</td>
+</tr>
+</tbody>
+</table>
+<p>Si <strong>no llega ningún mensaje</strong> en una hora aunque hayas subido cosas:</p>
+<ul>
+<li>Comprueba primero que los archivos aparecen con tick verde ✅ en<br>
+OneDrive.</li>
+<li>Avisa al admin del sistema (puede que el script no se esté<br>
+ejecutando, que el webhook esté caído, etc.).</li>
+</ul>
+<hr>
+<h2 id="7-dónde-aparecen-los-resultados">7. Dónde aparecen los resultados </h2>
+<p>Estructura de la biblioteca de SharePoint sincronizada:</p>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>&lt;Biblioteca&gt;\
+├── INBOX\              ← donde tú cuelgas las entradas
+├── LOGS\               ← logs diarios del script
+│   ├── log_alta_20260514.txt
+│   └── log_run_20260514.txt
+├── Plaza-ex\                       ← una carpeta por planta dada de alta
+│   ├── Plaza-ex_20260514.csv       ← resultados de la simulación del 14/05
+│   ├── Plaza-ex_20260514.pdf       ← informe correspondiente
+│   ├── Plaza-ex_20260515.csv       ← simulación del día siguiente
+│   └── Plaza-ex_20260515.pdf
+├── Norte\
+│   ├── Norte_20260514.csv
+│   └── Norte_20260514.pdf
+└── …
+</code></pre><ul>
+<li>Los <strong>archivos de la planta</strong> llevan la fecha en el nombre<br>
+(<code>&lt;Planta&gt;_YYYYMMDD.csv</code>/<code>.pdf</code>), por lo que cada ejecución crea<br>
+ficheros nuevos sin pisar los anteriores. Si lanzas dos veces el<br>
+mismo día, sí se sobreescribe el fichero de ese día.</li>
+<li>La carpeta <code>INBOX</code> queda vacía después de procesar (los archivos<br>
+consumidos se borran). Si tras un ciclo ves archivos que sobran, son<br>
+los que el script no supo a qué planta asociar (revisa el nombre).</li>
+</ul>
+<hr>
+<h2 id="8-cómo-se-ve-un-log">8. Cómo se ve un log </h2>
+<p>Si en Teams aparece un error, abrir el log del día correspondiente en<br>
+<code>LOGS\</code>:</p>
+<ul>
+<li><code>log_alta_&lt;fecha&gt;.txt</code> — para errores de altas y de cambios de<br>
+variante.</li>
+<li><code>log_run_&lt;fecha&gt;.txt</code> — para errores de simulaciones diarias.</li>
+</ul>
+<p>Cada bloque dentro del log tiene una cabecera clara:</p>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>============================================================
+[2026-05-14 09:25:46] OK - Plaza-ex - auto_alta
+============================================================
+&lt;detalle de lo que hizo el script para Plaza-ex&gt;
+
+
+============================================================
+[2026-05-14 09:25:58] ERROR - Norte - auto_alta
+============================================================
+&lt;detalle del error&gt;
+</code></pre><p>Busca el bloque marcado como <code>ERROR</code> y mira el motivo justo debajo de<br>
+la cabecera.</p>
+<p>Se conservan los <strong>30 logs más recientes</strong> de cada tipo; los más<br>
+antiguos se borran automáticamente.</p>
+<hr>
+<h2 id="9-errores-típicos-y-cómo-evitarlos">9. Errores típicos y cómo evitarlos </h2>
+<table>
+<thead>
+<tr>
+<th>Síntoma</th>
+<th>Causa probable</th>
+<th>Solución</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>✗ Error alta planta X</code> — <code>Falta .SIT</code></td>
+<td>No subiste el <code>.SIT</code> o no se llama exactamente <code>&lt;Planta&gt;.SIT</code></td>
+<td>Verifica el nombre del SIT (debe coincidir letra a letra con el PRJ)</td>
+</tr>
+<tr>
+<td><code>✗ Error alta planta X</code> — <code>Falta .MEF</code></td>
+<td>Mismo caso con el MEF</td>
+<td>Verifica el nombre del MEF</td>
+</tr>
+<tr>
+<td><code>✗ Error cambio de variante en planta X</code> — <code>PRJ no encontrado en workspace</code></td>
+<td>La planta nunca fue dada de alta</td>
+<td>Sube primero el alta (caso A)</td>
+</tr>
+<tr>
+<td><code>✗ Error simulación diaria X</code> — <code>planta no esta dada de alta</code></td>
+<td>El CSV apunta a una planta inexistente</td>
+<td>Comprueba el prefijo del CSV (lo de antes del primer <code>_</code>)</td>
+</tr>
+<tr>
+<td><code>✗ Error simulación diaria X</code> — <code>falta variant.txt</code></td>
+<td>El alta no se completó bien</td>
+<td>Re-haz el alta de la planta</td>
+</tr>
+<tr>
+<td>Aparece en el log <code>AVISO: Quedan N ficheros sin clasificar</code></td>
+<td>Hay archivos en INBOX que el script no reconoce</td>
+<td>Quítalos o renómbralos según las reglas de la sección 3</td>
+</tr>
+<tr>
+<td>Se procesó solo una planta de las dos que subí</td>
+<td>Posiblemente el otro <code>.PRJ</code> no estaba sincronizado al lanzar</td>
+<td>Espera al tick verde antes de la siguiente ejecución; los archivos que quedaron seguirán ahí para el ciclo siguiente</td>
+</tr>
+<tr>
+<td>Una notificación de Teams llega pero faltan eventos</td>
+<td>Algún archivo se subió a medio sincronizar y se quedó fuera del ciclo</td>
+<td>El siguiente ciclo lo recogerá si ya está sincronizado</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="10-qué-no-hacer">10. Qué NO hacer </h2>
+<ul>
+<li>❌ <strong>No modifiques archivos del <code>INBOX</code> mientras se están<br>
+sincronizando.</strong> Sube versiones finales.</li>
+<li>❌ <strong>No subas dos <code>.PRJ</code> con el mismo nombre</strong> en el mismo lote<br>
+(<code>Planta.PRJ</code> y <code>Planta.prj</code> cuentan como el mismo en Windows).</li>
+<li>❌ <strong>No cambies a mano el contenido de las carpetas <code>&lt;Planta&gt;\</code></strong><br>
+(los resultados se sobreescriben en cada ejecución).</li>
+<li>❌ <strong>No borres archivos de <code>LOGS\</code></strong> — la rotación es automática.</li>
+<li>❌ <strong>No subas CSV de simulación con nombres tipo <code>meteo.csv</code></strong>: sin el<br>
+prefijo <code>&lt;Planta&gt;_</code> el script no sabe a qué planta aplicarlos.</li>
+</ul>
+<hr>
+<h2 id="11-resumen-rápido">11. Resumen rápido </h2>
+<table>
+<thead>
+<tr>
+<th>Quiero…</th>
+<th>Subo a INBOX…</th>
+<th>Verifico en…</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Dar de alta <code>Plaza-ex</code></td>
+<td><code>Plaza-ex.PRJ</code> + <code>Plaza-ex.SIT</code> + <code>Plaza-ex.MEF</code> (+ PAN/OND/V?? opcionales)</td>
+<td>Notificación Teams + carpeta <code>Plaza-ex\</code> en SharePoint</td>
+</tr>
+<tr>
+<td>Cambiar variante de <code>Plaza-ex</code> a <code>V03</code></td>
+<td><code>Plaza-ex.V03</code></td>
+<td>Notificación Teams</td>
+</tr>
+<tr>
+<td>Simular <code>Plaza-ex</code> con datos del 14/05</td>
+<td><code>Plaza-ex_meteo_20260514.csv</code></td>
+<td><code>Plaza-ex\Plaza-ex_20260514.csv</code> + <code>Plaza-ex_20260514.pdf</code></td>
+</tr>
+<tr>
+<td>Dar de alta 5 plantas a la vez</td>
+<td>Los 5 <code>.PRJ</code> + sus 5 <code>.SIT</code> + sus 5 <code>.MEF</code> (+ PAN/OND compartidos)</td>
+<td>Una notificación con 5 eventos</td>
+</tr>
+</tbody>
+</table>
+<p>Si algo no encaja en esta guía o ves un error que no sabes interpretar,<br>
+manda el contenido del log del día (<code>log_alta_&lt;fecha&gt;.txt</code> o<br>
+<code>log_run_&lt;fecha&gt;.txt</code>) al admin del sistema.</p>
+
+      </div>
+      
+      
+    
+    
+    
+    
+    
+    
+  
+    </body></html>
