@@ -13,11 +13,29 @@ import { VegaVisual, useCssTheme, type VisualizationSpec } from "@microsoft/fabr
 import type { PrInterval } from "@/lib/pr-model";
 import { hourProfile } from "@/lib/aggregate";
 
-const POA = "#1b3d6e"; // azul marino
-const GHI = "#c2922e"; // ámbar mate
+const POA = "#1b3d6e"; // azul marino — POA medida
+const POA_E = "#7ba7dd"; // azul claro — POA esperada
+const GHI = "#c2922e"; // ámbar mate — GHI medida
+const GHI_E = "#e0c179"; // ámbar claro — GHI esperada
 const GREY = "#9ca3af"; // tramo/intervalo NO válido (sin color)
 const E_COLORS = { Medida: "#2563eb", Garantizada: "#475569" }; // energía: medida azul, garantizada slate (discontinua)
 const INVALID = "No válido";
+
+// Leyenda de irradiancia: UNA ENTRADA POR SERIE. Antes el color iba por sensor
+// (POA/GHI) y medida/esperada se distinguía solo por el trazo discontinuo, cuya
+// leyenda no llegaba a pintarse: en el gráfico no había forma de saber cuál era
+// la medida y cuál la esperada. Ahora cada serie tiene su propio color —y sigue
+// conservando el trazo, que ayuda al imprimir en blanco y negro.
+const IRR_COLORS: Record<string, string> = {
+    "POA medida": POA,
+    "POA esperada": POA_E,
+    "GHI medida": GHI,
+    "GHI esperada": GHI_E,
+};
+const IRR_LEGEND = {
+    title: "Irradiancia (W/m²)", orient: "top",
+    labelFontSize: 13, titleFontSize: 13, columns: 2, symbolStrokeWidth: 2,
+};
 
 const X_AXIS = { tickMinStep: 1, format: "d", labelFontSize: 13, titleFontSize: 14 };
 const Y_AXIS = { labelFontSize: 13, titleFontSize: 14 };
@@ -93,7 +111,7 @@ function buildDayIrr(dayIv: PrInterval[]): { grey: DayPt[]; color: DayPt[]; poin
         grey.push(...r.grey);
         color.push(...r.color);
         for (const iv of dayIv) {
-            points.push({ t: iv.ts.replace(" ", "T"), serie, sensor: s.sensor, tipo: s.tipo, y: s.val(iv), ckey: iv.valid ? s.sensor : INVALID, est: iv.valid ? "Válido" : INVALID });
+            points.push({ t: iv.ts.replace(" ", "T"), serie, sensor: s.sensor, tipo: s.tipo, y: s.val(iv), ckey: iv.valid ? serie : INVALID, est: iv.valid ? "Válido" : INVALID });
         }
     }
     return { grey, color, points };
@@ -205,11 +223,11 @@ export function IrradianceChart({ intervals }: { intervals: PrInterval[] }) {
                             y: { field: "y", type: "quantitative" },
                             detail: { field: "run" },
                             color: {
-                                field: "sensor",
-                                legend: { title: "Irradiancia (W/m²)", orient: "top", labelFontSize: 13, titleFontSize: 13 },
-                                scale: { domain: ["POA", "GHI"], range: [POA, GHI] },
+                                field: "serie",
+                                legend: IRR_LEGEND,
+                                scale: { domain: Object.keys(IRR_COLORS), range: Object.values(IRR_COLORS) },
                             },
-                            strokeDash: { ...DASH, title: null },
+                            strokeDash: { ...DASH, legend: null },
                         },
                     },
                     {
@@ -218,7 +236,7 @@ export function IrradianceChart({ intervals }: { intervals: PrInterval[] }) {
                         encoding: {
                             x: { field: "t", type: "temporal" },
                             y: { field: "y", type: "quantitative" },
-                            color: { field: "ckey", legend: null, scale: { domain: ["POA", "GHI", INVALID], range: [POA, GHI, GREY] } },
+                            color: { field: "ckey", legend: null, scale: { domain: [...Object.keys(IRR_COLORS), INVALID], range: [...Object.values(IRR_COLORS), GREY] } },
                             tooltip: [
                                 { field: "t", type: "temporal", title: "Hora", format: "%H:%M" },
                                 { field: "sensor", title: "Sensor" },
@@ -264,24 +282,23 @@ export function IrradianceChart({ intervals }: { intervals: PrInterval[] }) {
         }
         const nz = (v: number) => (v && v > 0 ? v : null);
         const values = hp.flatMap((h) => [
-            { hora: h.hour, sensor: "POA", tipo: "medida", wm2: nz(h.poaM) },
-            { hora: h.hour, sensor: "POA", tipo: "esperada", wm2: nz(h.poaE) },
-            { hora: h.hour, sensor: "GHI", tipo: "medida", wm2: nz(h.ghiM) },
-            { hora: h.hour, sensor: "GHI", tipo: "esperada", wm2: nz(h.ghiE) },
+            { hora: h.hour, sensor: "POA", tipo: "medida", serie: "POA medida", wm2: nz(h.poaM) },
+            { hora: h.hour, sensor: "POA", tipo: "esperada", serie: "POA esperada", wm2: nz(h.poaE) },
+            { hora: h.hour, sensor: "GHI", tipo: "medida", serie: "GHI medida", wm2: nz(h.ghiM) },
+            { hora: h.hour, sensor: "GHI", tipo: "esperada", serie: "GHI esperada", wm2: nz(h.ghiE) },
         ]);
         return {
             data: { values },
-            transform: [{ calculate: "datum.sensor + ' ' + datum.tipo", as: "serie" }],
             mark: { type: "line", interpolate: "monotone", point: true },
             encoding: {
                 x: { field: "hora", type: "quantitative", title: "Hora del día", axis: X_AXIS },
                 y: { field: "wm2", type: "quantitative", title: "W/m²", axis: Y_AXIS },
                 color: {
-                    field: "sensor",
-                    legend: { title: "Irradiancia (W/m²)", orient: "top", labelFontSize: 13, titleFontSize: 13 },
-                    scale: { domain: ["POA", "GHI"], range: [POA, GHI] },
+                    field: "serie",
+                    legend: IRR_LEGEND,
+                    scale: { domain: Object.keys(IRR_COLORS), range: Object.values(IRR_COLORS) },
                 },
-                strokeDash: { field: "tipo", title: null, scale: { domain: ["medida", "esperada"], range: [[1, 0], [5, 3]] } },
+                strokeDash: { field: "tipo", legend: null, scale: { domain: ["medida", "esperada"], range: [[1, 0], [5, 3]] } },
                 detail: { field: "serie" },
                 tooltip: [
                     { field: "hora", title: "Hora" },
