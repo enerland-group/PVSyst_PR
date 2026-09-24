@@ -1,42 +1,112 @@
 r"""
-Procedimiento pseudo-subhorario: N simulaciones horarias DIRECTAS (con el MEF
-real de la planta, sin tocar) sobre N copias completas del CSV raw, cada una con
-TODA su linea de tiempo desplazada a una fase distinta (0, 15, 30, 45 min para un
-CSV de paso 15 min; N = minutos distintos que traiga el CSV, no un valor fijo), y
+Procedimiento pseudo-subhorario: N simulaciones horarias DIRECTAS sobre N grupos
+del CSV raw -- uno por cada minuto distinto que traiga la marca de tiempo (0, 15,
+30, 45 para un CSV de paso 15 min; N = minutos distintos, no un valor fijo) -- y
 recombinacion de los N CSV de resultado -- intercalados por fecha real -- en una
 sola serie cronologica.
 
 Es la adaptacion al CLI del ejemplo "Pseudo-sub-hourly simulation" de la
 documentacion de PVsystCLI (el motor -ts:subhour nativo de PVsyst puede fallar
 con datos cuarto-horarios, o de otros pasos sub-horarios, con "weather data is
-hourly" aunque el CSV sea genuinamente sub-horario) -- pero NO con la tecnica que
-trae el script de referencia de PVsyst (partir el CSV por minuto en N CSV de 1
-fila/hora, convertirlos con un MEF forzado a MeasureStep=60 y pasar un -imt de
-centrado por grupo calculado con GetTimeShift). Esa tecnica se probo a fondo el
-2026-09-16 y quedo DESCARTADA (ver historial): tanto el -imt de centrado como la
-marca de tiempo literal del CSV de grupo resultaron IRRELEVANTES para la
-posicion solar que usa run-simulation en ese modo (contrastado con -imt:-29 vs
--imt:+29 sobre el mismo grupo: -22,7 vs -24,7 min, diferencia dentro del ruido) --
-la tecnica dejaba un sesgo estructural de ~-24 min por grupo (~-45 min al combinar
-los 4), sin ninguna palanca de entrada capaz de corregirlo.
+hourly" aunque el CSV sea genuinamente sub-horario). ESTA ES LA TECNICA QUE TRAE
+EL PROPIO PVSYST -- copiada del material que instala PVsyst 8.1.4 en esta misma
+maquina, no reinventada:
 
-LA TECNICA DE AQUI (por FASES, no por grupos) se apoya en el camino que SI esta
-validado: la conversion "directa" (MEF real, sin ningun MeasureStep forzado) que
-ya usan con exito T01_plants.aggregate_by_hour=true (PL1, PL2) y el propio FRA
-cuando corre asi -- medida en -1,3 min de desfase respecto al mediodia solar,
-dentro de tolerancia. run-simulation -ts:hour, con un MET de paso real
-sub-horario, agrega de forma nativa por HORA REAL de la marca (las 4 filas
-cuarto-horarias que caen en cada hora) y centra bien la posicion solar de esa
-agregacion. Para reconstruir la resolucion cuarto-horaria sin perder ese buen
-centrado, cada fase P (0, 15, 30, 45) usa una copia del CSV con TODA la linea de
-tiempo desplazada -P minutos (escribir_csv_desplazado): al agregar por hora REAL
-de esa linea desplazada, cada "hora" recoge las 4 medidas cuarto-horarias
-[P, P+60) de verdad -- confirmado sobre datos reales (ver verificacion del
-2026-09-17): la ventana de cada fase empieza exactamente 15 min despues que la
-anterior (fase 0: 08:00-08:45, fase 15: 08:15-09:00, fase 30: 08:30-09:15, fase
-45: 08:45-09:30, las 4 con sus 4 marcas reales correctas). Cada fase, simulada
-por separado con el MEF real, sale tan bien centrada como el camino directo
-(-1,1 / +0,3 / -0,6 / -1,2 min medidos para FRA); combinadas dan -1,0 min.
+  - Documentacion: "C:\Program Files\PVsyst8.1.4\help-cli\use-cases\
+    converting-weather.html#example-3-pseudo-sub-hourly-simulation-preparation"
+    y "...\use-cases\simulation.html#example-2-pseudo-sub-hourly-simulation".
+    Cita literal (converting-weather.html): "Copy MEF file for each minute
+    stamp and adapt the time shift parameter. In a hourly simulation, PVsyst
+    defines the sun position at the 30' mark (center of 1 hour interval). In
+    the example this means that for the recording interval 0-15', with center
+    at 7', the time shift needs to be -23', in addition to any other time
+    shift present in the data."
+  - Script de referencia (instalado junto con el CLI, no en este repo):
+    "C:\Program Files\PVsyst8.1.4\DataRO\PVsyst8.1_Data\CLI\Ressources\Examples\
+    ScriptsPython\Demo_PVsystCLI_fun.py" (funciones split_csv_by_time,
+    GetTimeShift, SetMinInCSVRes/offset_time_in_CSV, CombSubhourlyRes).
+  - Tambien referenciado en el paper enlazado desde la documentacion: "A model
+    correcting the effect of sub-hourly irradiance fluctuations on overload
+    clipping losses in hourly simulations" (pvsyst.com/pdf/company/publications
+    /articles/...).
+
+La tecnica, en 3 pasos (ver GetTimeShift/desfase_centrado y
+escribir_mef_measurestep_60 mas abajo):
+  1. Particionar el CSV por el minuto REAL de la marca (grupos_de_marcas):
+     cada grupo se queda solo con las filas de ESE minuto, sin tocar sus
+     marcas de tiempo (escribir_csv_grupo) -- 1 fila por hora, no 1 fila por
+     dia: para paso 15 min, el grupo "minuto=0" tiene las filas de :00 de
+     TODAS las horas del periodo.
+  2. Convertir cada grupo con una copia del MEF real donde se fuerza
+     MeasureStep=60 (escribir_mef_measurestep_60): le dice a PVsyst "esto ES
+     una serie horaria", una fila por hora, tal cual esta grabada. Y un -imt
+     de CENTRADO por grupo (desfase_centrado = round(paso/2 + minuto - 30)),
+     que le dice a PVsyst cuanto compensar porque la muestra no fue tomada en
+     el minuto 30 (centro asumido de una hora) sino en `minuto`. El -imt
+     "base" que ya trae la planta (T08_time_shifts) se SUMA a este centrado
+     (--imt): son dos correcciones independientes, no una sustituye a la otra.
+  3. Simular cada grupo -ts:hour (MET ya declarado como horario) y recombinar
+     los N CSV de resultado -- ver combinar_resultados, sin cambios respecto a
+     versiones anteriores de este fichero: no depende de la tecnica usada para
+     generar los grupos, solo de (csv_resultado, minuto_del_grupo).
+
+HISTORIAL (por que no es la primera version de este fichero):
+  - Una implementacion anterior de esta MISMA tecnica (particion + MeasureStep
+    forzado + -imt de centrado) se proba el 2026-09-16 y parecia no funcionar:
+    variar el -imt de centrado drasticamente (-29 vs +29 sobre el mismo grupo)
+    apenas cambiaba el resultado medido (-22,7 vs -24,7 min), con un sesgo
+    estructural de ~-24 min por grupo. La causa mas probable (no confirmada
+    entonces) es que el MeasureStep NO se estuviera forzando de verdad al
+    convertir -- si el MET seguia siendo de paso 15 real, run-simulation con
+    -ts:hour reagrega usando la posicion solar real de cada muestra
+    cuarto-horaria (grid horario real), y el -imt de centrado, pensado para un
+    MET genuinamente horario, no tiene ese efecto: de ahi que pareciera
+    "irrelevante". No se investigo mas a fondo y se descarto la tecnica.
+  - Se sustituyo (commit "Reescribe pseudo_subhour.py: tecnica por fases",
+    2026-09-17) por desplazar TODA la linea de tiempo -P minutos y dejar que
+    -ts:hour reagregue por hora real sobre esa linea desplazada, con el MEF
+    real sin modificar. Funcionaba para P=0/15/30, pero P=45 hace que
+    convert-meteo/run-simulation detecten un desfase horario de -45 min
+    respecto al SIT y lo rechacen: "Invalid weather file: the time shift
+    detected is -45 minutes" (visto en produccion sobre FRA el 2026-09-18,
+    con el CSV completo de 5 meses; la verificacion puntual del 2026-09-17
+    debio hacerse sobre una muestra que no disparo ese chequeo). Cualquier
+    desplazamiento fisico de -45 min es, literal y correctamente, un desfase
+    horario de -45 min para PVsyst -- la tecnica no tiene forma de evitar que
+    la fase 45 choque con ese limite.
+  - Esta version vuelve a la tecnica de particion + MeasureStep forzado
+    (identica a la de la documentacion oficial), corrigiendo lo que
+    probablemente fallo en el intento de 2026-09-16: escribir_mef_measurestep_60
+    fuerza explicitamente el MeasureStep de la copia del MEF usada para
+    convertir cada grupo, en vez de asumir que ya viene forzado.
+  - Probado en produccion (2026-09-18/24) SOLO con esto, el grupo 30 seguia
+    fallando igual: "Invalid weather file: the time shift detected is -51
+    minutes" con imt=+9 (base +1 + centrado +8) -- un desfase "detectado" muy
+    superior al -imt real que se le paso, que crece con el minuto del grupo
+    (contrastado con pruebas rapidas aisladas: convert-meteo+run-simulation
+    rechaza la carga del MET en los primeros segundos, sin esperar a la
+    simulacion completa, asi que calibrar esto es barato). MeasureStep=60
+    forzado sobre un MEF cuyo paso real es 15 introduce, ademas del -imt que
+    le pasamos, un desfase propio que PVsyst suma al calcular si el fichero es
+    "valido" -- no es un problema de escribir_csv_grupo ni de la formula de
+    centrado, es el chequeo pi_TimeShiftMax de PVsyst (ver mas abajo).
+  - LA PIEZA QUE FALTABA: el script de referencia de PVsyst SI contempla este
+    chequeo -- su funcion runSim pasa `-ipf:{params_filename}` con el
+    comentario explicito "Set param file to deactivate timeshift verification".
+    Ese fichero de parametros (Sources\Param_Modif_SingleDay.dat en el propio
+    material de PVsyst) tiene una unica linea util:
+    "pi_TimeShiftMax;300.0000;40.0000;min;Maximum allowed time shift in
+    weather data" -- el limite que da "Invalid weather file" cuando se supera.
+    En vez de perseguir un -imt que dé un desfase "detectado" cercano a 0 (fragil:
+    no se conoce la formula exacta de PVsyst para ese numero, y no hay garantia
+    de que generalice a otra planta u otro paso), este fichero
+    (pseudo_subhour_params.dat, junto a este script) sube ese limite a 120 min
+    -- comodo por encima de lo que puede dar cualquier grupo de un CSV
+    cuarto-horario -- y se pasa con -ipf a CADA run-simulation de este
+    procedimiento. Confirmado con pruebas rapidas (aisladas, sin esperar la
+    simulacion completa) sobre el grupo 30 (imt +9) y el grupo 45 (imt +23) de
+    FRA: ambos, que antes se rechazaban, pasan el chequeo con -ipf y entran a
+    simular.
 
 Uso desde auto_run.bat (dos comandos independientes):
 
@@ -50,13 +120,14 @@ Uso desde auto_run.bat (dos comandos independientes):
     python pseudo_subhour.py ejecutar PLANTA --ws WS --cli CLI --prj PRJ
         --variant VAR --sit SIT --mef MEF --csv CSV [--imt N] [--sfi SFI]
         --out RES_CSV
-        -> por cada fase (minuto distinto que traiga --csv) escribe una copia de
-           --csv con la linea de tiempo desplazada a esa fase, ejecuta un
-           convert-meteo + run-simulation -ts:hour DIRECTO (MEF real, sin
-           modificar) por fase, y combina los CSV de resultado -- intercalados
-           por fecha real -- en --out. Si cualquier fase falla se aborta TODO (no
-           se deja un --out a medias): mejor reintentar en el siguiente ciclo que
-           dejar una serie con huecos sin que se note. Codigo de salida 0/1.
+        -> por cada grupo (minuto distinto que traiga --csv) escribe un CSV solo
+           con las filas de ese minuto, convierte con una copia del MEF con
+           MeasureStep forzado a 60 y el -imt de centrado correspondiente,
+           ejecuta run-simulation -ts:hour, y combina los CSV de resultado --
+           intercalados por fecha real -- en --out. Si cualquier grupo falla se
+           aborta TODO (no se deja un --out a medias): mejor reintentar en el
+           siguiente ciclo que dejar una serie con huecos sin que se note.
+           Codigo de salida 0/1.
 
 Este script es DELIBERADAMENTE independiente de auto_run.bat en lo que hace: solo
 importa de timeshift.py los lectores/escritores ya probados de Excel/MEF/CSV
@@ -64,29 +135,19 @@ importa de timeshift.py los lectores/escritores ya probados de Excel/MEF/CSV
 procedimiento pseudo-subhorario fallara por algo imprevisto, el camino de siempre
 (subhour / hour directo) sigue intacto y no se ve afectado.
 
-DESPLAZAMIENTO DE FASE (escribir_csv_desplazado): a cada marca del CSV se le
-resta P minutos (mismo mecanismo, y mismo parsear_fecha/rehacer_fecha, que usa
-timeshift.py para corregir horas enteras -- aqui a granularidad de minutos). El
--imt "base" que ya traiga la planta (T08_time_shifts, minutos sueltos del SCADA)
-se sigue pasando tal cual a CADA fase: es un concepto distinto (desfase propio
-del SCADA, no el centrado de la agregacion horaria) y SI funciona con normalidad
-en el camino directo/real-MeasureStep que usa esta tecnica -- a diferencia del
--imt de centrado de la tecnica antigua, que resulto inutil.
-
 NORMALIZACION DE LA MARCA DE SALIDA: run-simulation -ts:hour escribe SIEMPRE
 ':00' en la columna 'date' del CSV de resultado, con independencia del minuto
-real de la marca de entrada (las 4 fases salen las cuatro etiquetadas ':00', con
-valores DISTINTOS entre si: la agregacion en si SI usa las marcas reales de cada
-fase, via el desplazamiento; solo la etiqueta de fecha de salida se normaliza).
-Por eso combinar_resultados() le suma la fase a la fecha de salida ANTES de
-ordenar/combinar (funcion _con_minuto), restaurando la hora de calendario real:
-es exactamente el paso SetMinInCSVRes/offset_time_in_CSV del script de
-referencia de PVsyst. Sin este paso las N fases se apilarian en la misma marca
-en vez de intercalarse. La reescala de energia de cada fila (factor_energia =
-paso/60, ver _escalar_fila) sigue exactamente igual que en la tecnica anterior:
-cada fila de una fase sigue siendo, en el fondo, una MEDIA horaria (no una
-muestra instantanea de `paso` minutos), asi que hay que repartir esa energia
-entre las N fases para no contarla N veces.
+real de la marca de entrada (los N grupos salen todos etiquetados ':00', con
+valores DISTINTOS entre si). Por eso combinar_resultados() le suma el minuto del
+grupo a la fecha de salida ANTES de ordenar/combinar (funcion _con_minuto),
+restaurando la hora de calendario real: es exactamente el paso
+SetMinInCSVRes/offset_time_in_CSV del script de referencia de PVsyst. Sin este
+paso los N grupos se apilarian en la misma marca en vez de intercalarse. La
+reescala de energia de cada fila (factor_energia = paso/60, ver _escalar_fila)
+es la misma idea que CombinedPower_List del script de referencia: cada fila de
+un grupo sigue siendo, en el fondo, una MEDIA horaria (no una muestra
+instantanea de `paso` minutos), asi que hay que repartir esa energia entre los
+N grupos para no contarla N veces.
 """
 from __future__ import annotations
 
@@ -114,6 +175,11 @@ from timeshift import (
 NOMBRE_TABLA_PLANTAS = "T01_plants"
 CARPETA_TMP = "pvsyst_pseudo_subhour"
 PREF = "    "
+
+# -ipf: sube pi_TimeShiftMax (ver docstring del modulo) para que run-simulation
+# no rechace los MET con MeasureStep forzado como "Invalid weather file" --
+# equivalente a Param_Modif_SingleDay.dat del script de referencia de PVsyst.
+PARAMS_TIMESHIFT = Path(__file__).with_name("pseudo_subhour_params.dat")
 
 RE_FILA_DATOS = re.compile(r"^\s*\d{1,2}/\d{1,2}/\d{2,4}\s+\d{1,2}:\d{2}\s*;")
 
@@ -180,32 +246,70 @@ def cmd_modo(args) -> int:
 # --------------------------------------------------------------------------
 # Fases (desplazamiento de la linea de tiempo completa)
 # --------------------------------------------------------------------------
-def fases_de_marcas(marcas) -> list[int]:
-    """Fases (minutos de desplazamiento) a simular: los minutos que aparecen DE
-    VERDAD en los datos, no el `paso` declarado en la MEF -- da igual que el CSV
-    sea de 15, 10, 20 o 5 minutos, o que falten muestras. Cada valor de minuto
-    distinto en la columna de fecha es una fase.
+def grupos_de_marcas(marcas) -> list[int]:
+    """Grupos (minutos reales) a simular: los minutos que aparecen DE VERDAD en
+    los datos, no el `paso` declarado en la MEF -- da igual que el CSV sea de
+    15, 10, 20 o 5 minutos, o que falten muestras. Cada valor de minuto
+    distinto en la columna de fecha es un grupo.
     """
     return sorted({m.valor.minute for m in marcas})
 
 
-def escribir_csv_desplazado(lineas: list[str], fmt: dict, fase_min: int, destino: Path) -> int:
-    """Copia del CSV con TODA la linea de tiempo desplazada -fase_min minutos.
+def desfase_centrado(paso: int, minuto: int) -> int:
+    """-imt de centrado para el grupo `minuto`, formula GetTimeShift del script
+    de referencia de PVsyst (ver docstring del modulo).
 
-    Es la pieza central de la tecnica por fases (ver docstring del modulo):
-    run-simulation -ts:hour agrega de forma nativa por HORA REAL de la marca
-    (agrupa las filas sub-horarias que caen en cada hora del reloj). Desplazar
-    TODAS las marcas -fase_min minutos antes de convertir hace que esa
-    agregacion nativa recoja, para cada "hora" de la linea desplazada, las
-    muestras reales de la ventana [fase_min, fase_min+60) -- confirmado sobre
-    datos reales el 2026-09-17: la ventana de cada fase empieza exactamente
-    fase_min minutos mas tarde que la de fase 0, con las mismas 4 marcas reales
-    que le corresponden.
+    PVsyst asume, en una simulacion horaria, que la muestra representa el
+    centro de la hora (minuto 30). Un grupo de este procedimiento junta las
+    muestras tomadas en el minuto real `minuto` de cada hora (recording
+    interval [minuto, minuto+paso)); su centro real es minuto + paso/2. La
+    diferencia entre ese centro real y el minuto 30 asumido es lo que hay que
+    pasarle a convert-meteo como -imt para que la posicion solar se calcule
+    donde de verdad se tomo la muestra.
 
-    Reutiliza parsear_fecha/rehacer_fecha de timeshift.py (mismo mecanismo, a
-    granularidad de minutos, que usa timeshift.py para corregir horas enteras):
-    conserva exactamente la forma textual original de cada marca. Devuelve el
-    numero de filas desplazadas.
+    Ejemplo de la propia documentacion de PVsyst (converting-weather.html):
+    paso=15, minuto=0 -> intervalo 0-15', centro en 7' -> imt=7-30=-23 (con
+    redondeo distinto, aqui sale -22; la diferencia de 1 min esta dentro del
+    ruido que la propia documentacion senala en otros ejemplos).
+    """
+    return round(paso / 2 + minuto - 30)
+
+
+def escribir_mef_measurestep_60(mef: Path, destino: Path) -> None:
+    """Copia de `mef` con MeasureStep forzado a 60 (resto de campos intactos:
+    TimeShiftF, UsesDST, DateHEte/DateHHiver, formato de columnas, etc.).
+
+    Paso 3 de la documentacion de PVsyst (converting-weather.html, ejemplo de
+    pseudo-sub-hourly): "Copy MEF file for each minute stamp and adapt the time
+    shift parameter" -- aqui basta una unica copia (el MeasureStep forzado no
+    depende del grupo, solo el -imt de desfase_centrado), reutilizada para
+    convertir los N grupos. Le dice a PVsyst "trata cada fila de este CSV como
+    una hora completa", que es justo lo que necesita un CSV ya particionado
+    por minuto (1 fila por hora, no por dia).
+    """
+    texto = mef.read_text(encoding="cp1252", errors="replace")
+    if re.search(r"^\s*MeasureStep=.*$", texto, re.MULTILINE):
+        texto = re.sub(r"^(\s*MeasureStep=).*$", r"\g<1>60", texto, count=1, flags=re.MULTILINE)
+    else:
+        texto += "\nMeasureStep=60\n"
+    destino.parent.mkdir(parents=True, exist_ok=True)
+    destino.write_text(texto, encoding="cp1252", errors="replace")
+
+
+def escribir_csv_grupo(lineas: list[str], fmt: dict, grupo_min: int, destino: Path) -> int:
+    """Copia del CSV solo con las filas cuyo minuto real es `grupo_min`, SIN
+    tocar sus marcas de tiempo (a diferencia de la tecnica por fases que
+    reemplazo esta funcion: aqui se filtra, no se desplaza).
+
+    Paso 1 de la documentacion de PVsyst (converting-weather.html): "Process
+    sub-hourly data to obtain one CSV file for each minute time stamp." Cada
+    grupo resultante tiene 1 fila por hora real del periodo (no 1 fila por
+    dia): para paso 15 min, el grupo minuto=0 recoge las filas de :00 de TODAS
+    las horas.
+
+    Reutiliza parsear_fecha de timeshift.py (mismo mecanismo que usa
+    timeshift.py para leer horas) solo para decidir el minuto de cada fila; el
+    texto de la fila se copia tal cual. Devuelve el numero de filas escritas.
     """
     sep, col, orden = fmt["separador"], fmt["campo_fecha"], fmt["orden_fecha"]
     cabecera = lineas[: fmt["cabecera"]]
@@ -213,21 +317,15 @@ def escribir_csv_desplazado(lineas: list[str], fmt: dict, fase_min: int, destino
     n = 0
     for linea in lineas[fmt["cabecera"]:]:
         if not linea.strip():
-            nuevas.append(linea)
             continue
         cuerpo = linea.rstrip("\r\n")
-        term = linea[len(cuerpo):]
         trozos = cuerpo.split(sep)
         if len(trozos) < col:
-            nuevas.append(linea)
             continue
         valor = parsear_fecha(trozos[col - 1], orden)
-        if valor is None:
-            nuevas.append(linea)
+        if valor is None or valor.minute != grupo_min:
             continue
-        nuevo = valor - dt.timedelta(minutes=fase_min)
-        trozos[col - 1] = rehacer_fecha(trozos[col - 1], nuevo, orden)
-        nuevas.append(sep.join(trozos) + term)
+        nuevas.append(linea)
         n += 1
     destino.parent.mkdir(parents=True, exist_ok=True)
     destino.write_bytes("".join(nuevas).encode("latin-1"))
@@ -323,14 +421,14 @@ def _con_minuto(linea: str, minuto: int) -> tuple[dt.datetime, str]:
 
     CONFIRMADO EMPIRICAMENTE (prueba real sobre FRA, 2026-09-01): run-simulation
     -ts:hour normaliza SIEMPRE la marca de salida a :00, sin importar el minuto
-    real del .MET de entrada -- las N fases de un CSV cuarto-horario salen todas
-    etiquetadas ':00' (con valores distintos entre si: la agregacion en si SI usa
-    las marcas reales, va en el propio CSV desplazado de cada fase -- ver
-    escribir_csv_desplazado; solo la etiqueta de fecha de salida se pierde). Sin
-    este paso, la recombinacion de mas abajo apilaria las N fases en la misma
-    marca en vez de intercalarlas. Es exactamente el paso SetMinInCSVRes/
+    real del .MET de entrada -- los N grupos de un CSV cuarto-horario salen
+    todos etiquetados ':00' (con valores distintos entre si: la agregacion en
+    si usa la marca real de cada fila del grupo, sin tocar -- ver
+    escribir_csv_grupo; solo la etiqueta de fecha de salida se pierde). Sin
+    este paso, la recombinacion de mas abajo apilaria los N grupos en la misma
+    marca en vez de intercalarlos. Es exactamente el paso SetMinInCSVRes/
     offset_time_in_CSV del script de referencia de PVsyst (ver docstring del
-    modulo): sumar la fase a la fecha de salida ANTES de combinar.
+    modulo): sumar el minuto del grupo a la fecha de salida ANTES de combinar.
     """
     fecha = _fecha_salida(linea) + dt.timedelta(minutes=minuto)
     resto = (linea.split(";", 1)[1] if ";" in linea else "").rstrip("\r\n")
@@ -435,12 +533,12 @@ def cmd_ejecutar(args) -> int:
     if not marcas:
         return fallar(f"no se ha podido leer ninguna marca de tiempo de {csv.name}")
 
-    fases = fases_de_marcas(marcas)
+    grupos = grupos_de_marcas(marcas)
     log.append(f"CSV: {csv.name}  {len(marcas):,} filas"
                + (f"  ({ilegibles} lineas ilegibles)" if ilegibles else ""))
-    log.append(f"fases (minutos distintos en la marca): {fases}")
-    if len(fases) < 2:
-        log.append(f"aviso: solo se ha visto un minuto ({fases[0]}) en el CSV; "
+    log.append(f"grupos (minutos distintos en la marca): {grupos}")
+    if len(grupos) < 2:
+        log.append(f"aviso: solo se ha visto un minuto ({grupos[0]}) en el CSV; "
                    f"el resultado equivale a -ts:hour directo")
 
     try:
@@ -450,11 +548,16 @@ def cmd_ejecutar(args) -> int:
     if not (-30 <= imt_base <= 30):
         return fallar(f"-imt base={imt_base} fuera de rango [-30,30]. Revisa el "
                       f"time_shift de {planta} en T08_time_shifts.")
-    imt_arg = [f"-imt:{imt_base}"] if imt_base != 0 else []
 
     sfi_arg = []
     if args.sfi and Path(args.sfi).is_file():
         sfi_arg = [f"-isf:{args.sfi}"]
+
+    if not PARAMS_TIMESHIFT.is_file():
+        return fallar(f"falta {PARAMS_TIMESHIFT.name} (junto a este script): sin el, "
+                      f"run-simulation rechaza los MET con MeasureStep forzado como "
+                      f"'Invalid weather file' -- ver docstring del modulo (-ipf)")
+    ipf_arg = [f"-ipf:{PARAMS_TIMESHIFT}"]
 
     base_tmp = Path(tempfile.gettempdir()) / CARPETA_TMP
     base_tmp.mkdir(parents=True, exist_ok=True)
@@ -462,45 +565,58 @@ def cmd_ejecutar(args) -> int:
 
     resultados: list[tuple[Path, int]] = []
     try:
-        for fase in fases:
-            etiqueta_fase = f"fase{fase:02d}"
-            csv_fase = tmp_dir / f"{planta}_{etiqueta_fase}.csv"
-            met_fase = ws / "Meteo" / f"{planta}_pseudo_{etiqueta_fase}.MET"
-            res_fase = tmp_dir / f"{planta}_{etiqueta_fase}_result.csv"
+        mef_forzado = tmp_dir / f"{planta}_measurestep60.MEF"
+        escribir_mef_measurestep_60(mef, mef_forzado)
+        log.append(f"MEF con MeasureStep forzado a 60: {mef_forzado.name} "
+                   f"(a partir de {mef.name}, paso real {fmt['paso']} min)")
 
-            n_desplazadas = escribir_csv_desplazado(lineas, fmt, fase, csv_fase)
+        for grupo in grupos:
+            etiqueta_grupo = f"grupo{grupo:02d}"
+            csv_grupo = tmp_dir / f"{planta}_{etiqueta_grupo}.csv"
+            met_grupo = ws / "Meteo" / f"{planta}_pseudo_{etiqueta_grupo}.MET"
+            res_grupo = tmp_dir / f"{planta}_{etiqueta_grupo}_result.csv"
 
-            # MEF REAL, sin modificar (a diferencia de la tecnica antigua, que
-            # forzaba MeasureStep=60): run-simulation -ts:hour agrega de forma
-            # nativa las filas sub-horarias que caen en cada hora de la linea
-            # desplazada -- es el mismo mecanismo que ya usan con exito PL1/PL2
-            # (aggregate_by_hour=true) y FRA en directo (ver docstring).
+            n_filas_grupo = escribir_csv_grupo(lineas, fmt, grupo, csv_grupo)
+            imt_centrado = desfase_centrado(fmt["paso"], grupo)
+            imt_total = imt_base + imt_centrado
+
+            # Copia del MEF con MeasureStep=60 (no el real): le dice a PVsyst
+            # que cada fila de este grupo -- ya filtrado a 1 fila/hora por
+            # escribir_csv_grupo -- ES una hora completa. El -imt centra la
+            # posicion solar en el minuto real de la muestra (ver
+            # desfase_centrado); es la tecnica documentada por PVsyst, no la
+            # agregacion nativa de -ts:hour que usaba la version anterior.
             rc = _ejecutar_cli(
-                [str(cli), "convert-meteo", f"-icf:{csv_fase}", f"-imf:{mef}",
-                 f"-isf:{sit}", f"-omf:{met_fase}", *imt_arg],
-                log, f"convert-meteo {etiqueta_fase}",
+                [str(cli), "convert-meteo", f"-icf:{csv_grupo}", f"-imf:{mef_forzado}",
+                 f"-isf:{sit}", f"-omf:{met_grupo}", f"-imt:{imt_total}"],
+                log, f"convert-meteo {etiqueta_grupo}",
             )
-            if rc != 0 or not met_fase.is_file():
-                return fallar(f"convert-meteo fallo en la fase {etiqueta_fase} "
-                              f"({n_desplazadas} filas desplazadas, imt {imt_base:+d})")
+            if rc != 0 or not met_grupo.is_file():
+                return fallar(f"convert-meteo fallo en el {etiqueta_grupo} "
+                              f"({n_filas_grupo} filas, imt {imt_total:+d} "
+                              f"= base {imt_base:+d} + centrado {imt_centrado:+d})")
 
+            # -ipf sube pi_TimeShiftMax (ver PARAMS_TIMESHIFT / docstring del
+            # modulo): sin esto run-simulation rechaza este MET como "Invalid
+            # weather file" por el desfase propio de forzar MeasureStep=60
+            # sobre un MEF de paso real distinto -- independiente de imt_total.
             rc = _ejecutar_cli(
                 [str(cli), "run-simulation", f"-w:{ws}", f"-p:{args.prj}",
-                 f"-v:{args.variant}", "-ts:hour", f"-s:{sit}", f"-imf:{met_fase}",
-                 *sfi_arg, f"-ocf:{res_fase}", "-odc", "-rl:en"],
-                log, f"run-simulation {etiqueta_fase}",
+                 f"-v:{args.variant}", "-ts:hour", f"-s:{sit}", f"-imf:{met_grupo}",
+                 *sfi_arg, *ipf_arg, f"-ocf:{res_grupo}", "-odc", "-rl:en"],
+                log, f"run-simulation {etiqueta_grupo}",
             )
             try:
-                met_fase.unlink()
+                met_grupo.unlink()
             except OSError:
                 pass
-            if rc != 0 or not res_fase.is_file():
-                return fallar(f"run-simulation fallo en la fase {etiqueta_fase} "
-                              f"({n_desplazadas} filas desplazadas)")
+            if rc != 0 or not res_grupo.is_file():
+                return fallar(f"run-simulation fallo en el {etiqueta_grupo} "
+                              f"({n_filas_grupo} filas, imt {imt_total:+d})")
 
-            log.append(f"fase {etiqueta_fase}: {n_desplazadas} filas desplazadas -{fase} min, "
-                       f"imt {imt_base:+d} -> OK")
-            resultados.append((res_fase, fase))
+            log.append(f"{etiqueta_grupo}: {n_filas_grupo} filas, "
+                       f"imt {imt_total:+d} (base {imt_base:+d} + centrado {imt_centrado:+d}) -> OK")
+            resultados.append((res_grupo, grupo))
 
         factor_energia = fmt["paso"] / 60.0
         try:
@@ -513,8 +629,8 @@ def cmd_ejecutar(args) -> int:
     log.append(f"columnas de potencia/irradiancia reescaladas x{factor_energia:g} "
                f"(paso {fmt['paso']} min / 60) para que la energia por fila sea la real, "
                f"no la de una hora completa")
-    print(f"{PREF}[PSEUDO-SUBHOUR OK] {planta}: {len(fases)} fase(s) "
-          f"(minutos {', '.join(f'{f:02d}' for f in fases)}), {n_filas:,} filas combinadas.")
+    print(f"{PREF}[PSEUDO-SUBHOUR OK] {planta}: {len(grupos)} grupo(s) "
+          f"(minutos {', '.join(f'{g:02d}' for g in grupos)}), {n_filas:,} filas combinadas.")
     if args.verbose:
         for linea in log:
             print(f"{PREF}  {linea}")
@@ -526,9 +642,10 @@ def cmd_ejecutar(args) -> int:
 # --------------------------------------------------------------------------
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(
-        description="Procedimiento pseudo-subhorario: N simulaciones -ts:hour "
-                    "directas (MEF real) sobre el CSV raw desplazado a cada fase, "
-                    "y recombinacion de los CSV de resultado.")
+        description="Procedimiento pseudo-subhorario: N simulaciones -ts:hour, "
+                    "una por cada grupo (minuto real) del CSV raw, con el MEF "
+                    "copiado a MeasureStep=60 y el -imt de centrado de cada "
+                    "grupo, y recombinacion de los CSV de resultado.")
     sub = ap.add_subparsers(dest="cmd", required=True)
 
     m = sub.add_parser("modo", help="true/false: aggregate_by_hour de T01_plants para esa planta")
