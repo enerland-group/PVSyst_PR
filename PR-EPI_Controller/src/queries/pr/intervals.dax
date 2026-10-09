@@ -19,6 +19,7 @@ SELECTCOLUMNS (
     "c7", pr_results[c7],
     "c8", pr_results[c8],
     "c9", pr_results[c9],
-    "active_criteria", pr_results[active_criteria]
+    "active_criteria", pr_results[active_criteria],
+    "test_type", pr_results[test_type]
 )
 ORDER BY [ts] ASC

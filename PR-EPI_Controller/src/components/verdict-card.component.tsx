@@ -3,6 +3,8 @@
 // Los KPIs (garantizada / medida / desviación / EPI / días válidos) se
 // calculan sobre el PERIODO seleccionado arriba; el veredicto de cabecera
 // sigue siendo el del run completo, que es el contractual.
+// En modo PR el veredicto es el mismo (medida ≥ garantizada ⇔ PR ≥ PR
+// garantizado), pero se cuenta en PR: medido frente a garantizado.
 //-----------------------------------------------------------------------
 
 import type { PrSummary } from "@/lib/pr-model";
@@ -33,6 +35,11 @@ export function VerdictCard({ s, view }: { s: PrSummary; view?: PrSummary }) {
     const aboveBelow = s.passed ? "por encima" : "por debajo";
     const deltaSign = s.deltaPct >= 0 ? "+" : "";
     const partial = k.periodStart !== s.periodStart || k.periodEnd !== s.periodEnd;
+    const isPr = s.testType === "PR";
+    const pct = (v: number) => (v * 100).toFixed(2);
+    // Diferencia de PR en puntos porcentuales (PR medido − PR garantizado)
+    const prPp = (x: PrSummary) => (x.prMeasured - x.prGuaranteed) * 100;
+    const signed = (v: number) => `${v >= 0 ? "+" : ""}${v.toFixed(2)}`;
 
     return (
         <div className="border border-border rounded-b-md mb-6 overflow-hidden" style={{ borderTop: `3px solid ${color}` }}>
@@ -44,12 +51,22 @@ export function VerdictCard({ s, view }: { s: PrSummary; view?: PrSummary }) {
                     {word}
                 </span>
                 <span className="text-400 text-muted-foreground">
-                    La producción medida está{" "}
-                    <strong style={{ color }}>
-                        {deltaSign}
-                        {s.deltaPct.toFixed(2)}%
-                    </strong>{" "}
-                    {aboveBelow} del umbral garantizado.
+                    {isPr ? (
+                        <>
+                            El PR medido (<strong style={{ color }}>{pct(s.prMeasured)}%</strong>) está{" "}
+                            <strong style={{ color }}>{signed(prPp(s))} pp</strong>{" "}
+                            {aboveBelow} del PR garantizado ({pct(s.prGuaranteed)}%).
+                        </>
+                    ) : (
+                        <>
+                            La producción medida está{" "}
+                            <strong style={{ color }}>
+                                {deltaSign}
+                                {s.deltaPct.toFixed(2)}%
+                            </strong>{" "}
+                            {aboveBelow} del umbral garantizado.
+                        </>
+                    )}
                     <span className="font-mono text-200 uppercase tracking-[0.1em] opacity-70 ml-2">Run completo</span>
                 </span>
             </div>
@@ -60,6 +77,16 @@ export function VerdictCard({ s, view }: { s: PrSummary; view?: PrSummary }) {
                         : "Periodo seleccionado · todo el run"}
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5">
+                    {isPr ? (
+                        <>
+                            <Kpi label="PR medido" value={pct(k.prMeasured)} unit="%" accent={kColor} />
+                            <Kpi label="PR garantizado" value={pct(k.prGuaranteed)} unit="%" />
+                            <Kpi label="Δ PR" value={signed(prPp(k))} unit="pp" accent={kColor} />
+                            <Kpi label="Producción medida" value={(k.measuredKwh / 1e6).toFixed(3)} unit="GWh" />
+                            <Kpi label="Días válidos" value={String(k.validDays)} unit="días" />
+                        </>
+                    ) : (
+                    <>
                     <Kpi label="Producción garantizada" value={(k.guaranteedKwh / 1e6).toFixed(3)} unit="GWh" />
                     <Kpi label="Producción medida" value={(k.measuredKwh / 1e6).toFixed(3)} unit="GWh" />
                     <Kpi
@@ -75,6 +102,8 @@ export function VerdictCard({ s, view }: { s: PrSummary; view?: PrSummary }) {
                         accent={kColor}
                     />
                     <Kpi label="Días válidos" value={String(k.validDays)} unit="días" />
+                    </>
+                    )}
                 </div>
             </div>
         </div>

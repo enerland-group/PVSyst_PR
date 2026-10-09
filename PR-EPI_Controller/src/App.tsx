@@ -9,7 +9,7 @@ import { useSemanticModelQuery } from "@/hooks/use-semantic-model-query";
 import { ThemeContext } from "@/hooks/theme.context";
 import { pr } from "@/queries";
 import { rowsToObjects, str } from "@/lib/query-rows";
-import { summarizeIntervals, toIntervals, activeFromTable } from "@/lib/pr-model";
+import { summarizeIntervals, toIntervals, activeFromTable, testTypeFromTable, type TestType } from "@/lib/pr-model";
 import { dayStats, dateRange, filterByDate, normalizeResolution } from "@/lib/aggregate";
 import { MOCK_PLANTS, MOCK_ACTIVE, MOCK_INTERVALS } from "@/lib/mock-data";
 import { downloadLatestTraceability } from "@/lib/fabric-files";
@@ -23,6 +23,8 @@ import { DailyDetailTable } from "@/components/daily-detail-table.component";
 import { ModelBuilder } from "@/model-builder/ui/ModelBuilder";
 
 const MOCK = import.meta.env.VITE_PR_MOCK === "1";
+/** Tipo de test del mock (VITE_PR_MOCK_TYPE=PR para previsualizar el modo PR). */
+const MOCK_TYPE: TestType = import.meta.env.VITE_PR_MOCK_TYPE === "PR" ? "PR" : "EPI";
 
 function App() {
     const { isDark, toggleTheme } = useContext(ThemeContext);
@@ -61,10 +63,14 @@ function App() {
     const active = MOCK
         ? MOCK_ACTIVE
         : intervalsQ.data?.status === "success" ? activeFromTable(intervalsQ.data.table) : new Set<string>();
+    // EPI o PR (01_Plants, columna PR-EPI → pr_results.test_type)
+    const testType: TestType = MOCK
+        ? MOCK_TYPE
+        : intervalsQ.data?.status === "success" ? testTypeFromTable(intervalsQ.data.table) : "EPI";
     const plantName = plants.find((p) => p.code === selected)?.name ?? selected;
     const summary = useMemo(
-        () => summarizeIntervals(intervals, { plantName, active }),
-        [intervals, plantName, active],
+        () => summarizeIntervals(intervals, { plantName, active, testType }),
+        [intervals, plantName, active, testType],
     );
 
     // 3) Periodo global. Por defecto, TODO el rango disponible.
@@ -78,10 +84,10 @@ function App() {
     const days = useMemo(() => dayStats(intervals), [intervals]);
 
     // Resumen del periodo seleccionado: alimenta las tarjetas de KPIs
-    // (garantizada / medida / desviación / EPI / días válidos).
+    // (garantizada / medida / desviación / EPI o PR / días válidos).
     const viewSummary = useMemo(
-        () => summarizeIntervals(viewIntervals, { plantName, active }),
-        [viewIntervals, plantName, active],
+        () => summarizeIntervals(viewIntervals, { plantName, active, testType }),
+        [viewIntervals, plantName, active, testType],
     );
 
     const anyError = MOCK ? undefined : plantsQ.error || intervalsQ.error;
@@ -158,6 +164,16 @@ function App() {
                         {summary?.plantName || "PR-EPI Controller"}
                         <span className="block text-300 font-normal text-muted-foreground font-mono mt-1 tracking-[0.06em]">
                             Performance Ratio Test — IEC 61724-2
+                            {summary && (
+                                <span
+                                    className="ml-2 px-1.5 py-0.5 rounded-sm border border-border text-200 font-bold tracking-[0.1em]"
+                                    title={testType === "PR"
+                                        ? "Test PR: medida frente a P_dc × POA/1000 × Δt × PR garantizado"
+                                        : "Test EPI: medida frente a la esperada de PVsyst × EPI garantizado"}
+                                >
+                                    TEST {testType}
+                                </span>
+                            )}
                         </span>
                     </h1>
                     <div className="flex items-end gap-4">
@@ -257,7 +273,7 @@ function App() {
                         </Section>
 
                         <Section title="Detalle — por días o por intervalos" sub="Periodo seleccionado · agregado en cliente">
-                            <DailyDetailTable intervals={viewIntervals} />
+                            <DailyDetailTable intervals={viewIntervals} testType={testType} />
                         </Section>
                     </>
                 )}

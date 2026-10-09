@@ -7,9 +7,16 @@
 import { rowsToObjects, num, bool, str } from "@/lib/query-rows";
 import type { QueryTable } from "@microsoft/fabric-app-data";
 
+/** Tipo de test de la planta (01_Plants, columna PR-EPI).
+ *  EPI: medida vs esperada de PVsyst × EPI garantizado.
+ *  PR:  medida vs referencia P_dc × POA/1000 × Δt (en pr_results va en la
+ *       columna de la esperada) × PR garantizado. */
+export type TestType = "EPI" | "PR";
+
 /** Resumen de una ejecución (fila de pr_results). */
 export interface PrSummary {
     runId: string;
+    testType: TestType;
     plantName: string;
     periodStart: string;
     periodEnd: string;
@@ -21,6 +28,9 @@ export interface PrSummary {
     deltaKwh: number;
     deltaPct: number;
     ratio: number;
+    /** Solo modo PR: PR medido = Σmedida/Σreferencia y PR garantizado = Σgarantizada/Σreferencia. */
+    prMeasured: number;
+    prGuaranteed: number;
     validDays: number;
     totalIntervals: number;
     validIntervals: number;
@@ -140,6 +150,13 @@ export function activeFromTable(table: QueryTable): Set<string> {
     return rows.length ? parseActive(rows[0].active_criteria) : new Set();
 }
 
+/** Tipo de test de la planta (columna test_type, igual en todas las filas).
+ *  Sin informar (runs anteriores a la columna) = EPI. */
+export function testTypeFromTable(table: QueryTable): TestType {
+    const rows = rowsToObjects(table);
+    return rows.length && str(rows[0].test_type).trim().toUpperCase() === "PR" ? "PR" : "EPI";
+}
+
 /** Nivel del criterio: por intervalo o por día (define el denominador del %). */
 export type CritLevel = "interval" | "day";
 
@@ -221,7 +238,7 @@ function modeOf(nums: number[]): number {
  *  - resolución: paso temporal más frecuente entre intervalos. */
 export function summarizeIntervals(
     intervals: PrInterval[],
-    opts: { plantName?: string; active?: Set<string>; runId?: string; executedAt?: string } = {},
+    opts: { plantName?: string; active?: Set<string>; runId?: string; executedAt?: string; testType?: TestType } = {},
 ): PrSummary | undefined {
     if (!intervals.length) return undefined;
 
@@ -256,6 +273,7 @@ export function summarizeIntervals(
 
     return {
         runId: opts.runId ?? "",
+        testType: opts.testType ?? "EPI",
         plantName: opts.plantName ?? "",
         periodStart: intervals[0].day,
         periodEnd: intervals[intervals.length - 1].day,
@@ -267,6 +285,8 @@ export function summarizeIntervals(
         deltaKwh,
         deltaPct: guaranteedKwh ? (deltaKwh / guaranteedKwh) * 100 : 0,
         ratio: guaranteedKwh ? measuredKwh / guaranteedKwh : 0,
+        prMeasured: expectedKwh ? measuredKwh / expectedKwh : 0,
+        prGuaranteed: expectedKwh ? guaranteedKwh / expectedKwh : 0,
         validDays: validDays.size,
         totalIntervals: intervals.length,
         validIntervals,

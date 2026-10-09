@@ -7,7 +7,7 @@ import { useMemo, useState } from "react";
 import { DataGrid, type GridColumnDef } from "@microsoft/fabric-datagrid";
 import { useCssTheme } from "@microsoft/fabric-visuals";
 import type { DataTable } from "@microsoft/fabric-visuals-core";
-import type { PrInterval } from "@/lib/pr-model";
+import type { PrInterval, TestType } from "@/lib/pr-model";
 import { toDayRows } from "@/lib/aggregate";
 
 type Mode = "days" | "intervals";
@@ -58,8 +58,10 @@ const deltaAbsRenderer = (value: unknown) => {
     );
 };
 
-export function DailyDetailTable({ intervals }: { intervals: PrInterval[] }) {
+export function DailyDetailTable({ intervals, testType = "EPI" }: { intervals: PrInterval[]; testType?: TestType }) {
     const theme = useCssTheme();
+    // En modo PR la columna de la esperada lleva la referencia P_dc × POA/1000 × Δt
+    const ee = testType === "PR" ? "E Referencia" : "E Esperada";
     const [mode, setMode] = useState<Mode>("days");
     const [filter, setFilter] = useState("");
 
@@ -86,7 +88,7 @@ export function DailyDetailTable({ intervals }: { intervals: PrInterval[] }) {
                         { name: "day", displayName: "Fecha" },
                         { name: "em", displayName: "E Medida (MWh)", format: "#,0.00" },
                         { name: "eg", displayName: "E Garantizada (MWh)", format: "#,0.00" },
-                        { name: "ee", displayName: "E Esperada (MWh)", format: "#,0.00" },
+                        { name: "ee", displayName: `${ee} (MWh)`, format: "#,0.00" },
                         { name: "dabs", displayName: "Δ (MWh)" },
                         { name: "delta", displayName: "Δ %" },
                         { name: "poa", displayName: "POA (W/m²)", format: "#,0" },
@@ -100,7 +102,7 @@ export function DailyDetailTable({ intervals }: { intervals: PrInterval[] }) {
                     { id: "day", header: "Fecha" },
                     { id: "em", header: "E Medida (MWh)" },
                     { id: "eg", header: "E Garantizada (MWh)" },
-                    { id: "ee", header: "E Esperada (MWh)" },
+                    { id: "ee", header: `${ee} (MWh)` },
                     { id: "dabs", header: "Δ (MWh)", cellRenderer: deltaAbsRenderer },
                     { id: "delta", header: "Δ %", cellRenderer: deltaRenderer },
                     { id: "poa", header: "POA (W/m²)" },
@@ -130,7 +132,7 @@ export function DailyDetailTable({ intervals }: { intervals: PrInterval[] }) {
                     { name: "ts", displayName: "Instante" },
                     { name: "em", displayName: "E Medida (kWh)", format: "#,0.000" },
                     { name: "eg", displayName: "E Garantizada (kWh)", format: "#,0.000" },
-                    { name: "ee", displayName: "E Esperada (kWh)", format: "#,0.000" },
+                    { name: "ee", displayName: `${ee} (kWh)`, format: "#,0.000" },
                     { name: "dabs", displayName: "Δ (kWh)" },
                     { name: "delta", displayName: "Δ %" },
                     { name: "poa", displayName: "POA (W/m²)", format: "#,0" },
@@ -143,7 +145,7 @@ export function DailyDetailTable({ intervals }: { intervals: PrInterval[] }) {
                 { id: "ts", header: "Instante" },
                 { id: "em", header: "E Medida (kWh)" },
                 { id: "eg", header: "E Garantizada (kWh)" },
-                { id: "ee", header: "E Esperada (kWh)" },
+                { id: "ee", header: `${ee} (kWh)` },
                 { id: "dabs", header: "Δ (kWh)", cellRenderer: deltaAbsRenderer },
                 { id: "delta", header: "Δ %", cellRenderer: deltaRenderer },
                 { id: "poa", header: "POA (W/m²)" },
@@ -151,7 +153,7 @@ export function DailyDetailTable({ intervals }: { intervals: PrInterval[] }) {
                 { id: "valid", header: "Estado", cellRenderer: estadoRenderer },
             ],
         };
-    }, [intervals, mode, filter]);
+    }, [intervals, mode, filter, ee]);
 
     // La rejilla se virtualiza (rowHeight) para no volcar al DOM las ~10.000 filas
     // de una planta cuartohoraria. El virtualizador mide su contenedor, así que la
