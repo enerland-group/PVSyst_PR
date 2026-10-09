@@ -10,7 +10,8 @@ services:
       - http://localhost:5173
       - https://fond-spur-b4c329ed90-westeurope.webapp.fabricapps.net
   data:
-    enabled: false
+    enabled: true
+    dialect: mssql
   storage:
     enabled: false
   staticHosting:
@@ -18,5 +19,6 @@ services:
     folder: dist
     buildCommand: npm run build:fabric
     indexDocument: index.html
+    assetAccess: protected
   functions:
     enabled: false

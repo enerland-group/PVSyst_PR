@@ -20,6 +20,7 @@ import { ProductionChart } from "@/components/daily-energy-chart.component";
 import { IrradianceChart } from "@/components/irradiance-chart.component";
 import { CriteriaAudit } from "@/components/criteria-audit.component";
 import { DailyDetailTable } from "@/components/daily-detail-table.component";
+import { ModelBuilder } from "@/model-builder/ui/ModelBuilder";
 
 const MOCK = import.meta.env.VITE_PR_MOCK === "1";
 
@@ -30,6 +31,8 @@ function App() {
     const [gEnd, setGEnd] = useState("");
     const [xlsxMsg, setXlsxMsg] = useState("");
     const [xlsxBusy, setXlsxBusy] = useState(false);
+    // Pestañas: dashboard del test PR/EPI o constructor de modelos (Excel con fórmulas)
+    const [tab, setTab] = useState<"dashboard" | "builder">("dashboard");
 
     // 1) Plantas
     const plantsQ = useSemanticModelQuery(MOCK ? { connection: "prModel", query: "" } : pr.plants());
@@ -110,17 +113,17 @@ function App() {
                 </div>
                 <div className="flex items-center gap-3">
                     <div className="font-mono text-200 tracking-[0.14em] uppercase opacity-80 text-right leading-tight hidden md:block">
-                        <strong className="block text-300 opacity-100">Performance Ratio Test</strong>
-                        IEC 61724-2 {summary?.plantName ? `· ${summary.plantName}` : ""}
+                        <strong className="block text-300 opacity-100">{tab === "builder" ? "PR-EPI Controller" : "Performance Ratio Test"}</strong>
+                        {tab === "builder" ? "Performance model builder" : <>IEC 61724-2 {summary?.plantName ? `· ${summary.plantName}` : ""}</>}
                     </div>
-                    <button
+                    {tab === "dashboard" && <button
                         onClick={onExportExcel}
                         disabled={!summary || xlsxBusy}
                         className="font-mono text-200 uppercase border border-white/40 rounded-sm px-3 py-1.5 hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed"
                         title="Descargar el Excel de trazabilidad más reciente de la planta (OneLake)"
                     >
                         ⤓ Excel trazab.
-                    </button>
+                    </button>}
                     <button
                         onClick={toggleTheme}
                         className="font-mono text-200 uppercase border border-white/30 rounded-sm px-2.5 py-1.5 hover:bg-white/10"
@@ -131,7 +134,24 @@ function App() {
                 </div>
             </header>
 
-            <div className="px-6 md:px-10 pt-7 pb-16 max-w-[1720px] mx-auto">
+            {/* ── Pestañas ─────────────────────────────────────────── */}
+            <nav aria-label="Secciones" className="flex border-b border-border px-6 md:px-10 bg-secondary overflow-x-auto">
+                {([["dashboard", "Dashboard"], ["builder", "Model builder"]] as const).map(([k, label]) => (
+                    <button
+                        key={k}
+                        type="button"
+                        onClick={() => setTab(k)}
+                        aria-current={tab === k ? "page" : undefined}
+                        className={`font-mono text-200 uppercase tracking-[0.12em] px-4 py-2.5 border-b-[3px] whitespace-nowrap ${tab === k ? "border-primary text-foreground font-bold" : "border-transparent text-muted-foreground hover:text-foreground"}`}
+                    >
+                        {label}
+                    </button>
+                ))}
+            </nav>
+
+            <div hidden={tab !== "builder"}><ModelBuilder /></div>
+
+            <div className="px-6 md:px-10 pt-7 pb-16 max-w-[1720px] mx-auto" hidden={tab !== "dashboard"}>
                 {/* ── Título + selector + meta ───────────────────── */}
                 <div className="flex flex-wrap items-end justify-between gap-4 border-b-2 border-[#1b3d6e] pb-3 mb-4">
                     <h1 className="text-hero-800 font-bold text-foreground leading-tight">
